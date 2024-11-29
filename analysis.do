@@ -12,70 +12,24 @@ log using `logfile', replace
 
 use "./Data/cleaned_data.dta", clear
 
-global histograms 0
-global summary_statistics 0
+// Make sure to turn the flags on
+global histograms 1
+global summary_statistics 1
 global baseline_analysis 1
-global union_analysis 0
-global globalization_analysis 0
+global union_analysis 1
+global globalization_analysis 1
 
 /* Variable generation */
-
-// Add the annual CPI inflation data
-gen inflation = .
-replace inflation = 13.5 if year == 1980
-replace inflation = 10.3 if year == 1981
-replace inflation = 6.1 if year == 1982
-replace inflation = 3.2 if year == 1983
-replace inflation = 4.3 if year == 1984
-replace inflation = 3.5 if year == 1985
-replace inflation = 1.9 if year == 1986
-replace inflation = 3.7 if year == 1987
-replace inflation = 4.1 if year == 1988
-replace inflation = 4.8 if year == 1989
-replace inflation = 5.4 if year == 1990
-replace inflation = 4.2 if year == 1991
-replace inflation = 3.0 if year == 1992
-replace inflation = 2.7 if year == 1993
-replace inflation = 2.7 if year == 1994
-replace inflation = 2.5 if year == 1995
-replace inflation = 3.3 if year == 1996
-replace inflation = 1.7 if year == 1997
-replace inflation = 1.6 if year == 1998
-replace inflation = 2.2 if year == 1999
-replace inflation = 3.4 if year == 2000
-replace inflation = 2.8 if year == 2001
-replace inflation = 1.6 if year == 2002
-replace inflation = 2.3 if year == 2003
-replace inflation = 2.7 if year == 2004
-replace inflation = 3.4 if year == 2005
-replace inflation = 2.5 if year == 2006
-replace inflation = 4.1 if year == 2007
-replace inflation = 0.1 if year == 2008
-replace inflation = 2.7 if year == 2009
-replace inflation = 1.5 if year == 2010
-replace inflation = 3.0 if year == 2011
-replace inflation = 1.7 if year == 2012
-replace inflation = 1.5 if year == 2013
-replace inflation = 0.8 if year == 2014
-replace inflation = 0.7 if year == 2015
-replace inflation = 2.1 if year == 2016
-replace inflation = 2.1 if year == 2017
-replace inflation = 1.9 if year == 2018
-replace inflation = 2.3 if year == 2019
-replace inflation = 1.4 if year == 2020
-replace inflation = 7.0 if year == 2021
-replace inflation = 6.5 if year == 2022
-replace inflation = 3.4 if year == 2023 
-
-// De-mean inflation
-quietly summ inflation
-scalar mean_inflation = r(mean) 
-replace inflation = inflation - mean_inflation
 
 // Merge the macro variables on
 merge m:1 year stfips using "./Data/macro_variables.dta"
 keep if _m == 3
 drop _m 
+
+// De-mean inflation
+quietly summ inflation
+scalar mean_inflation = r(mean) 
+replace inflation = inflation - mean_inflation
 
 // Generate important variables
 gen experience = age - educ - 6
@@ -90,35 +44,24 @@ local individual_controls educ experience experience2 female white married union
 
 if $histograms == 1 {
 	
-	// Just 2010
+	// Figure 1
 	histogram log_wage_change if year == 2010, by(year) width(0.01)
-	graph export "../Plots/histogram_2010.png", replace
+	graph export "./Plots/histogram_2010.png", replace
 	
-	// Compare 1980 vs 2010
+	// Figure 2
 	histogram log_wage_change if year == 1980 | year == 2010, by(year) width(0.01)
-	graph export "../Plots/histogram_comparison.png", replace
-	
-	// Although not really a histogram, I think Staiger wanted a plot of % rigid over time (and maybe compare that with inflation over time in general)
+	graph export "./Plots/histogram_comparison.png", replace
 	
 }
 
 // Too much missing union data from before 1983, so we just drop all of those observations 
-// 9147 + 10591 + 10633
 cap drop if year <= 1982
 
 if $summary_statistics == 1 {
 	
-	
-	
-	// what to put for summary statistics
+	// Table 1
 	outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables/sum_stats.doc" if year < 2000, replace ctitle("Pre 2000")
 	outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables/sum_stats.doc" if year >= 2000, append ctitle("Post 2000")
-	
-	/*
-	// Put summary statistics for industry and occupation in appendix
-	outsum i.ind using "../Tables/industry_sum_stats.doc" if year < 2000, replace ctitle("Pre 2000")
-	outsum i.ind using "../Tables/industry_sum_stats.doc" if year >= 2000, append ctitle("Post 2000")
-	*/
 		
 }
 
