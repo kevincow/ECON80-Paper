@@ -2,7 +2,7 @@ clear all
 set memory 600m
 set more off
 
-local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/"
+local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/"
 cd "`dir'"
 
 local logfile analysis.log
@@ -10,7 +10,7 @@ cap log close
 cap erase `logfile'
 log using `logfile', replace
 
-use "cleaned_data.dta", clear
+use "./Data/cleaned_data.dta", clear
 
 global histograms 0
 global summary_statistics 0
@@ -73,7 +73,7 @@ scalar mean_inflation = r(mean)
 replace inflation = inflation - mean_inflation
 
 // Merge the macro variables on
-merge m:1 year stfips using "macro_variables.dta"
+merge m:1 year stfips using "./Data/macro_variables.dta"
 keep if _m == 3
 drop _m 
 

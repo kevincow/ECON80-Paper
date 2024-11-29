@@ -5,17 +5,17 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/"
 cd "`dir'"
 
-use "cleaned_data_04to23.dta", clear
-append using "cleaned_data_01to04.dta"
-append using "cleaned_data_96to01.dta"
-append using "cleaned_data_94to96.dta"
-append using "cleaned_data_93to94.dta"
-append using "cleaned_data_89to93.dta"
-append using "cleaned_data_88to89.dta"
-append using "cleaned_data_86to89.dta"
-append using "cleaned_data_85to86.dta"
-append using "cleaned_data_84to85.dta"
-append using "cleaned_data_79to84.dta"
+use "./CPS Clean/cleaned_data_04to23.dta", clear
+append using "./CPS Clean/cleaned_data_01to04.dta"
+append using "./CPS Clean/cleaned_data_96to01.dta"
+append using "./CPS Clean/cleaned_data_94to96.dta"
+append using "./CPS Clean/cleaned_data_93to94.dta"
+append using "./CPS Clean/cleaned_data_89to93.dta"
+append using "./CPS Clean/cleaned_data_88to89.dta"
+append using "./CPS Clean/cleaned_data_86to89.dta"
+append using "./CPS Clean/cleaned_data_85to86.dta"
+append using "./CPS Clean/cleaned_data_84to85.dta"
+append using "./CPS Clean/cleaned_data_79to84.dta"
 
 // Make the state dummies consistent
 replace stfips = 1 if state == 63	 	// Alabama
@@ -421,9 +421,7 @@ label define occ_label 1 "Management" ///
 
 label values occ occ_label
 
-drop if missing(occ) 	// 2387 missing
-
-// Check for major outliers in wage growth distribution, specifically in the years with less observations
+drop if missing(occ)
 
 // Drop allocateds
 drop if I25a == 1 | I25b == 1 | I25c == 1 | I25d == 1     // 45,120 observations deleted mostly from recent years

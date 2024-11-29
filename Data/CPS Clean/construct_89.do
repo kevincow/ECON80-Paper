@@ -2,7 +2,7 @@ clear all
 set memory 600m
 set more off
 
-local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/"
+local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
 use "morg89.dta", clear
