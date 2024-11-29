@@ -1,431 +1,1692 @@
-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  /Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/analysis.log
   log type:  text
- opened on:  28 Oct 2024, 00:10:18
+ opened on:  28 Nov 2024, 05:26:18
 
 . 
 . use "cleaned_data.dta", clear
 
 . 
+. global histograms 0
+
+. global summary_statistics 0
+
+. global baseline_analysis 1
+
+. global union_analysis 0
+
+. global globalization_analysis 0
+
+. 
+. /* Variable generation */
+. 
 . // Add the annual CPI inflation data
 . gen inflation = .
-(80,277 missing values generated)
+(298,043 missing values generated)
+
+. replace inflation = 13.5 if year == 1980
+(6,945 real changes made)
+
+. replace inflation = 10.3 if year == 1981
+(8,133 real changes made)
+
+. replace inflation = 6.1 if year == 1982
+(8,171 real changes made)
+
+. replace inflation = 3.2 if year == 1983
+(5,630 real changes made)
+
+. replace inflation = 4.3 if year == 1984
+(7,850 real changes made)
+
+. replace inflation = 3.5 if year == 1985
+(4,647 real changes made)
+
+. replace inflation = 1.9 if year == 1986
+(4,069 real changes made)
+
+. replace inflation = 3.7 if year == 1987
+(6,856 real changes made)
+
+. replace inflation = 4.1 if year == 1988
+(6,329 real changes made)
+
+. replace inflation = 4.8 if year == 1989
+(9,407 real changes made)
+
+. replace inflation = 5.4 if year == 1990
+(7,695 real changes made)
+
+. replace inflation = 4.2 if year == 1991
+(8,042 real changes made)
+
+. replace inflation = 3.0 if year == 1992
+(7,941 real changes made)
+
+. replace inflation = 2.7 if year == 1993
+(7,903 real changes made)
+
+. replace inflation = 2.7 if year == 1994
+(8,233 real changes made)
+
+. replace inflation = 2.5 if year == 1995
+(4,243 real changes made)
+
+. replace inflation = 3.3 if year == 1996
+(2,801 real changes made)
+
+. replace inflation = 1.7 if year == 1997
+(6,725 real changes made)
+
+. replace inflation = 1.6 if year == 1998
+(6,892 real changes made)
+
+. replace inflation = 2.2 if year == 1999
+(5,924 real changes made)
+
+. replace inflation = 3.4 if year == 2000
+(3,880 real changes made)
+
+. replace inflation = 2.8 if year == 2001
+(5,234 real changes made)
+
+. replace inflation = 1.6 if year == 2002
+(5,729 real changes made)
+
+. replace inflation = 2.3 if year == 2003
+(6,981 real changes made)
+
+. replace inflation = 2.7 if year == 2004
+(2,551 real changes made)
+
+. replace inflation = 3.4 if year == 2005
+(5,884 real changes made)
+
+. replace inflation = 2.5 if year == 2006
+(9,214 real changes made)
+
+. replace inflation = 4.1 if year == 2007
+(9,245 real changes made)
+
+. replace inflation = 0.1 if year == 2008
+(9,336 real changes made)
+
+. replace inflation = 2.7 if year == 2009
+(9,602 real changes made)
+
+. replace inflation = 1.5 if year == 2010
+(9,376 real changes made)
+
+. replace inflation = 3.0 if year == 2011
+(8,722 real changes made)
+
+. replace inflation = 1.7 if year == 2012
+(8,350 real changes made)
+
+. replace inflation = 1.5 if year == 2013
+(8,346 real changes made)
+
+. replace inflation = 0.8 if year == 2014
+(7,644 real changes made)
+
+. replace inflation = 0.7 if year == 2015
+(6,045 real changes made)
+
+. replace inflation = 2.1 if year == 2016
+(6,760 real changes made)
 
 . replace inflation = 2.1 if year == 2017
-(13,644 real changes made)
+(7,093 real changes made)
 
 . replace inflation = 1.9 if year == 2018
-(12,968 real changes made)
+(6,722 real changes made)
 
 . replace inflation = 2.3 if year == 2019
-(13,144 real changes made)
+(6,831 real changes made)
 
 . replace inflation = 1.4 if year == 2020
-(11,158 real changes made)
+(5,408 real changes made)
 
 . replace inflation = 7.0 if year == 2021
-(9,840 real changes made)
+(5,002 real changes made)
 
 . replace inflation = 6.5 if year == 2022
-(9,439 real changes made)
+(4,647 real changes made)
 
 . replace inflation = 3.4 if year == 2023 
-(10,084 real changes made)
+(5,005 real changes made)
 
 . 
-. 
-. // Get real wage change (histogram + summary statistics by year)
-. gen log_real_wage_change = log(earnhre / lag_earnhre) - (inflation / 100)
+. // De-mean inflation
+. quietly summ inflation
+
+. scalar mean_inflation = r(mean) 
+
+. replace inflation = inflation - mean_inflation
+(298,043 real changes made)
 
 . 
-. gen neg_inflation = -inflation
+. // Merge the macro variables on
+. merge m:1 year stfips using "macro_variables.dta"
 
-. levelsof year, local(years)
-2017 2018 2019 2020 2021 2022 2023
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                           298,043  (_merge==3)
+    -----------------------------------------
 
-. foreach y of local years {
-  2.         
-.         su neg_inflation if year == `y'
-  3.         local neg_inflation_value = r(mean)
-  4.         
-.         histogram log_real_wage_change if year == `y', width(0.025) percent ///
->                 title("Distribution of Log Real Wage Change - Year `y'") ///
->                 xtitle("Log Real Wage Change") ytitle("Percentage") ///
->                 xline(`neg_inflation_value', lpattern(dash)) // ask prof staiger cuz this isn't working 
-  5.                 
-.         
-.         graph export "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram`y'.png", replace
-  6.         
-. }
+. keep if _m == 3
+(0 observations deleted)
 
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |     13,644        -2.1           0       -2.1       -2.1
-(bin=20, start=-.27046084, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2017.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |     12,968        -1.9           0       -1.9       -1.9
-(bin=20, start=-.26869696, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2018.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |     13,144        -2.3           0       -2.3       -2.3
-(bin=20, start=-.27298015, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2019.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |     11,158        -1.4           0       -1.4       -1.4
-(bin=20, start=-.26346084, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2020.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |      9,840          -7           0         -7         -7
-(bin=20, start=-.31946087, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2021.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |      9,439        -6.5           0       -6.5       -6.5
-(bin=20, start=-.31494173, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2022.png saved as PNG format
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-neg_inflat~n |     10,084        -3.4           0       -3.4       -3.4
-(bin=20, start=-.2838937, width=.025)
-file /Users/kevincao/Desktop/ECON80/ECON80-Paper/Plots/histogram2023.png saved as PNG format
+. drop _m 
 
 . 
-. /*
-> histogram log_real_wage_change if year != 2017, by(year) width(0.05) percent
-> */
-.         
-. 
-. /*
-> levelsof year, local(years)
-> foreach y of local years {
->         kdensity log_real_wage_change if year == `y', title("Year `y'")
->         pause "press enter"
-> }
-> */
-. 
-. // Could we first perhaps evaluate whether DNWR holds in the Card paper due to globalization and shift to serv
-> ices?
-. 
-. // Generate important controls
-. gen male = (sex == 1)
+. // Generate important variables
+. gen experience = age - educ - 6
 
-. gen white = (race == 1 & missing(ethnic))
+. gen experience2 = experience^2
+
+. gen female = (sex == 2)
+
+. gen white = (race == 1 & missing(ethnic) & year > 2002) | (race == 1 & ethnic == 8 & year <= 2002)
+
+. gen married = (marital == 1 | marital == 2)
 
 . gen union = (unionmme == 1 | unioncov == 1)
 
-. gen private_sector = (class94 >= 4)
+.                                                    
+. gen rigid = (abs(log_wage_change) <= 0.01)  
 
-. gen fulltime = (uhours >= 35)
-
-. gen supporting_child = (ownchild > 0)
-
-. gen immigrant = (prcitshp <= 3)
+. local individual_controls educ experience experience2 female white married union i.ind i.occ
 
 . 
-. 
-. 
-. gen tradable = inlist(ind, 170, 180, 190, 270, 280, 290, ///
->                              370, 380, 390, 470, 480, 490, ///
->                              1070, 1080, 1090, 1170, 1180, 1190, ///
->                              1270, 1280, 1290, 1370, 1390, ///
->                              1470, 1480, 1490, 1570, 1590, 1670, ///
->                              1680, 1690, 1770, 1790, 1870, 1880, ///
->                              1890, 1990, 2070, 2090, 2170, 2180, ///
->                              2190, 2270, 2280, 2290, 2370, 2380, ///
->                              2390, 2470, 2480, 2490, 2570, 2590, ///
->                              2670, 2680, 2690, 2770, 2780, 2790, ///
->                              2870, 2880, 2890, 2970, 2980, 2990, ///
->                              3070, 3080, 3090, 3170, 3180, 3190, ///
->                              3290, 3360, 3370, 3380, 3390, ///
->                              3470, 3490, 3570, 3580, 3590, ///
->                              3670, 3680, 3690, 3770, 3780, 3790, ///
->                              3870, 3890, 3960, 3970, 3980, 3990, ///
->                              4070, 4080, 4090, 4170, 4180, 4190, ///
->                              4260, 4270, 4280, 4290, ///
->                              4370, 4380, 4390, 4470, 4480, 4490, ///
->                              4560, 4570, 4580, 4585, 4590, ///
->                              6070, 6080, 6090)
-
-.                                                          
-.                 
-. 
-. // Revisit this definition...
-. gen gvc_integrated = inlist(ind, 3360, 3370, 3380, 3390, ///
->                                    3570, 3580, 3590, ///
->                                    3670, 3680, 3690, ///
->                                    1470, 1480, 1490, ///
->                                    1670, 1680, 1690, ///
->                                    2180, 2190, 2370, 2380, ///
->                                    2670, 2680, 2690, 2770, ///
->                                    2870, 2880, 2890, 2970,  ///
->                                    3090, 3170, 3180, 3190, ///
->                                    2070, 2090, 2290)
-
-. 
-. 
-. 
-. // Missing an education variable
-. 
-. // Study could... focus on peculiar economic times e.g. covid, gfc, great inflation, etc...
-. 
-. // Don't forget high income and low income differentiation
-. // Also minimum wage and paid leave laws
-. 
-. 
-. 
-. local controls male white age union private_sector fulltime supporting_child immigrant tradable gvc_integrated
-
-. 
-. 
-. // Assign a RTW dummy
-. local rtw_states "1 2 4 6 10 12 13 15 17 18 24 27 29 33 34 36 40 41 42 44 45 47 48 49"
-
-. gen rtw = 0
-
-. foreach state in `rtw_states' {
-  2.         
-.         replace rtw = 1 if stfips == `state'
-  3.         
+. if $histograms == 1 {
+.         
+.         // Just 2010
+.         histogram log_wage_change if year == 2010, by(year) width(0.01)
+.         graph export "../Plots/histogram_2010.png", replace
+.         
+.         // Compare 1980 vs 2010
+.         histogram log_wage_change if year == 1980 | year == 2010, by(year) width(0.01)
+.         graph export "../Plots/histogram_comparison.png", replace
+.         
+.         // Although not really a histogram, I think Staiger wanted a plot of % rigid over time (and maybe compare that with
+>  inflation over time in general)
+.         
 . }
-(1,200 real changes made)
-(967 real changes made)
-(1,409 real changes made)
-(6,924 real changes made)
-(854 real changes made)
-(2,181 real changes made)
-(1,229 real changes made)
-(971 real changes made)
-(2,363 real changes made)
-(1,430 real changes made)
-(808 real changes made)
-(1,657 real changes made)
-(1,480 real changes made)
-(1,554 real changes made)
-(1,034 real changes made)
-(2,196 real changes made)
-(979 real changes made)
-(1,574 real changes made)
-(2,782 real changes made)
-(822 real changes made)
-(870 real changes made)
-(1,425 real changes made)
-(4,098 real changes made)
-(1,615 real changes made)
+
+. 
+. // Too much missing union data from before 1983, so we just drop all of those observations 
+. // 9147 + 10591 + 10633
+. cap drop if year <= 1982
+
+. 
+. if $summary_statistics == 1 {
+.         
+.         
+.         
+.         // what to put for summary statistics
+.         outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables
+> /sum_stats.doc" if year < 2000, replace ctitle("Pre 2000")
+.         outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables
+> /sum_stats.doc" if year >= 2000, append ctitle("Post 2000")
+.         
+.         /*
+>         // Put summary statistics for industry and occupation in appendix
+>         outsum i.ind using "../Tables/industry_sum_stats.doc" if year < 2000, replace ctitle("Pre 2000")
+>         outsum i.ind using "../Tables/industry_sum_stats.doc" if year >= 2000, append ctitle("Post 2000")
+>         */
+.                 
+. }
+
+. 
+. if $baseline_analysis == 1 {
+.         /*
+>         
+>         // All pre vs post 2000
+>         logit rigid inflation productivity_growth `individual_controls' i.stfips if year < 2000, cluster(stfips)
+>         outreg2 using "../Tables/baseline_table_1.doc", replace ctitle("Year < 2000, No Macro Controls")
+>         logit rigid inflation productivity_growth unemployment `individual_controls' i.stfips if year < 2000, cluster(stfip
+> s)
+>         outreg2 using "../Tables/baseline_table_1.doc", append ctitle("Year < 2000, Macro Controls")
+>         
+>         logit rigid inflation productivity_growth `individual_controls' i.stfips if year >= 2000, cluster(stfips)
+>         outreg2 using "../Tables/baseline_table_1.doc", append ctitle("Year >= 2000, No Macro Controls")
+>         logit rigid inflation productivity_growth unemployment `individual_controls' i.stfips if year >= 2000, cluster(stfi
+> ps)
+>         outreg2 using "../Tables/baseline_table_1.doc", append ctitle("Year >= 2000, Macro Controls")
+> 
+>         
+>         // Low vs High Income
+>         sort year lag_earnhre
+>         egen bottom_quartile_threshold = pctile(lag_earnhre), p(25) by(year)
+>         gen low_income = (lag_earnhre <= bottom_quartile_threshold)
+>         
+>         gen inflation_low_income = inflation * low_income
+>         
+>         logit rigid inflation_low_income low_income `individual_controls' i.stfips i.year if year <= 2000, cluster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", replace ctitle("No Macro Controls")
+>         logit rigid inflation_low_income low_income unemployment `individual_controls' i.stfips i.year if year <= 2000, clu
+> ster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", append ctitle("Macro Controls")
+>         logit rigid inflation_low_income low_income inflation productivity_growth unemployment `individual_controls' i.stfi
+> ps if year <= 2000, cluster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", append ctitle("No Year FE")
+>         
+>         logit rigid inflation_low_income low_income `individual_controls' i.stfips i.year if year >= 2000, cluster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", append ctitle("No Macro Controls")
+>         logit rigid inflation_low_income low_income unemployment `individual_controls' i.stfips i.year if year >= 2000, clu
+> ster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", append ctitle("Macro Controls")
+>         logit rigid inflation_low_income low_income inflation productivity_growth unemployment `individual_controls' i.stfi
+> ps if year >= 2000, cluster(stfips)
+>         outreg2 using "../Tables/low_income_table_1.doc", append ctitle("No Year FE")
+>         */
+.         
+.         // Education level
+.         
+.         
+.         cap gen college = educ >= 9
+.         cap gen inflation_college = inflation * college
+.         logit rigid inflation_college college `individual_controls' i.stfips i.year if year <= 2000, cluster(stfips)
+
+note: 23.occ != 0 predicts failure perfectly;
+      23.occ omitted and 1 obs not used.
+
+Iteration 0:   log pseudolikelihood = -59078.122  
+Iteration 1:   log pseudolikelihood = -58088.759  
+Iteration 2:   log pseudolikelihood = -58071.345  
+Iteration 3:   log pseudolikelihood = -58071.342  
+
+Logistic regression                                    Number of obs = 115,066
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -58071.342                      Pseudo R2     =  0.0170
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |   .0051906    .032345     0.16   0.873    -.0582044    .0685855
+                                    college |  -.1062985   .0431147    -2.47   0.014    -.1908018   -.0217952
+                                       educ |   .0134034   .0054443     2.46   0.014     .0027327     .024074
+                                 experience |   .0105123   .0021164     4.97   0.000     .0063643    .0146603
+                                experience2 |   .0000322   .0000409     0.79   0.432     -.000048    .0001124
+                                     female |  -.0484718   .0204949    -2.37   0.018    -.0886412   -.0083024
+                                      white |  -.0140458   .0178987    -0.78   0.433    -.0491266     .021035
+                                    married |    .013951   .0157473     0.89   0.376    -.0169131     .044815
+                                      union |  -.1802909   .0187144    -9.63   0.000    -.2169704   -.1436114
+                                            |
+                                        ind |
+                                Mining/Oil  |  -.2751889   .1317841    -2.09   0.037     -.533481   -.0168967
+                              Construction  |  -.1804013   .0975056    -1.85   0.064    -.3715087    .0107061
+                             Manufacturing  |  -.4804526   .0912146    -5.27   0.000    -.6592299   -.3016754
+                           Wholesale Trade  |  -.2637648   .0967544    -2.73   0.006    -.4533999   -.0741297
+                              Retail Trade  |  -.2100801   .1037793    -2.02   0.043    -.4134838   -.0066763
+                Transportation/Warehousing  |  -.3111759   .1042484    -2.98   0.003     -.515499   -.1068529
+                                 Utilities  |  -.6619487   .1114788    -5.94   0.000    -.8804431   -.4434543
+                            Communications  |  -.5001841   .1078718    -4.64   0.000     -.711609   -.2887592
+                         Finance/Insurance  |  -.6150401   .1109983    -5.54   0.000    -.8325928   -.3974875
+                               Real Estate  |  -.0385601   .1268316    -0.30   0.761    -.2871455    .2100253
+Professional/Scientific/Technical Services  |  -.2369276   .1176012    -2.01   0.044    -.4674217   -.0064336
+                                Consulting  |  -.1197961   .3895049    -0.31   0.758    -.8832117    .6436194
+  Business Administrative/Support Services  |   -.098453   .1045541    -0.94   0.346    -.3033752    .1064692
+                                 Education  |  -.6109043     .10221    -5.98   0.000    -.8112321   -.4105764
+              Healthcare/Social Assistance  |  -.5869011   .0947363    -6.20   0.000    -.7725809   -.4012213
+             Arts/Entertainment/Recreation  |  -.2233747   .0980282    -2.28   0.023    -.4155066   -.0312429
+               Accommodation/Food Services  |  -.3121063   .1143327    -2.73   0.006    -.5361942   -.0880184
+                            Other Services  |   .1168101   .1130968     1.03   0.302    -.1048555    .3384758
+                     Public Administration  |  -.6615403   .1068722    -6.19   0.000    -.8710059   -.4520746
+                                            |
+                                        occ |
+                      Financial Operations  |   .0912656   .1128095     0.81   0.419    -.1298371    .3123682
+                  Computer/Math Operations  |    .166672   .0667646     2.50   0.013     .0358158    .2975282
+                  Architecture/Engineering  |   .0088481   .1029167     0.09   0.931    -.1928649    .2105611
+             Life/Physical/Social Sciences  |   .0259288   .1687577     0.15   0.878    -.3048302    .3566878
+                 Community/Social Services  |   .3665045   .1390803     2.64   0.008      .093912    .6390969
+                                     Legal  |   .1997268   .2225237     0.90   0.369    -.2364116    .6358652
+                                 Education  |   .4590476   .1153951     3.98   0.000     .2328773    .6852178
+                  Arts/Entertainment/Media  |   .3804322   .1122814     3.39   0.001     .1603647    .6004996
+                   Healthcare Practitioner  |     .19709   .0919326     2.14   0.032     .0169053    .3772746
+                        Healthcare Support  |   .0584934   .0873747     0.67   0.503    -.1127579    .2297447
+                       Protective Services  |    .232523   .0930811     2.50   0.012     .0500874    .4149586
+                             Food Services  |   .4378257   .0758158     5.77   0.000     .2892293     .586422
+                                  Cleaning  |   .1909455   .0798601     2.39   0.017     .0344226    .3474684
+                         Personal Services  |   .5747655   .1043188     5.51   0.000     .3703044    .7792266
+                                     Sales  |   .0689684   .0808033     0.85   0.393    -.0894031    .2273399
+                    Administrative Support  |   .1258336   .0755329     1.67   0.096    -.0222082    .2738753
+                  Farming/Fishing/Forestry  |   .4079762   .1242429     3.28   0.001     .1644646    .6514878
+                  Installation/Maintenance  |   .1210258   .0756993     1.60   0.110    -.0273421    .2693938
+                                Production  |   .1331717   .0842028     1.58   0.114    -.0318627    .2982061
+                            Transportation  |   .2550923   .0774514     3.29   0.001     .1032902    .4068943
+                           Material Moving  |          0  (empty)
+                                            |
+                                     stfips |
+                                        AK  |     .12882   .0097952    13.15   0.000     .1096218    .1480182
+                                        AZ  |  -.1679613   .0051963   -32.32   0.000    -.1781459   -.1577767
+                                        AR  |  -.0374421     .00323   -11.59   0.000    -.0437727   -.0311114
+                                        CA  |  -.0124171   .0052994    -2.34   0.019    -.0228037   -.0020304
+                                        CO  |   -.044469   .0056033    -7.94   0.000    -.0554514   -.0334867
+                                        CT  |  -.2922974   .0050317   -58.09   0.000    -.3021593   -.2824354
+                                        DE  |  -.1838796   .0039856   -46.14   0.000    -.1916913   -.1760679
+                                        DC  |  -.4908238   .0132595   -37.02   0.000     -.516812   -.4648357
+                                        FL  |  -.1464126   .0053381   -27.43   0.000     -.156875   -.1359502
+                                        GA  |  -.0667025   .0047495   -14.04   0.000    -.0760113   -.0573937
+                                        HI  |  -.0841151    .015414    -5.46   0.000    -.1143259   -.0539042
+                                        ID  |  -.1211692   .0056674   -21.38   0.000    -.1322772   -.1100612
+                                        IL  |  -.1500749   .0052512   -28.58   0.000    -.1603671   -.1397827
+                                        IN  |  -.1638691    .005168   -31.71   0.000    -.1739982     -.15374
+                                        IA  |  -.1255229   .0060876   -20.62   0.000    -.1374544   -.1135914
+                                        KS  |   -.117781   .0060117   -19.59   0.000    -.1295637   -.1059982
+                                        KY  |  -.0530286   .0049357   -10.74   0.000    -.0627024   -.0433548
+                                        LA  |  -.0540362   .0041537   -13.01   0.000    -.0621774   -.0458951
+                                        ME  |  -.1924159     .00652   -29.51   0.000    -.2051948   -.1796369
+                                        MD  |  -.0917957   .0051524   -17.82   0.000    -.1018943   -.0816972
+                                        MA  |  -.0641444   .0068379    -9.38   0.000    -.0775464   -.0507424
+                                        MI  |  -.0304211   .0065616    -4.64   0.000    -.0432816   -.0175605
+                                        MN  |  -.1762233   .0071972   -24.49   0.000    -.1903296   -.1621171
+                                        MS  |   .0750962   .0050321    14.92   0.000     .0652336    .0849589
+                                        MO  |  -.1543831   .0040109   -38.49   0.000    -.1622444   -.1465219
+                                        MT  |  -.0279972   .0079935    -3.50   0.000    -.0436642   -.0123302
+                                        NE  |   -.165147    .006608   -24.99   0.000    -.1780985   -.1521955
+                                        NV  |  -.0284644   .0150668    -1.89   0.059    -.0579947    .0010659
+                                        NH  |  -.2078468   .0062471   -33.27   0.000    -.2200909   -.1956027
+                                        NJ  |  -.1215381   .0055365   -21.95   0.000    -.1323894   -.1106869
+                                        NM  |  -.0990762   .0068939   -14.37   0.000     -.112588   -.0855644
+                                        NY  |  -.0271905   .0063651    -4.27   0.000    -.0396658   -.0147152
+                                        NC  |  -.2121793   .0051654   -41.08   0.000    -.2223034   -.2020553
+                                        ND  |  -.0240121   .0085223    -2.82   0.005    -.0407155   -.0073086
+                                        OH  |  -.1426978   .0055566   -25.68   0.000    -.1535886   -.1318071
+                                        OK  |   .0828402   .0046171    17.94   0.000     .0737909    .0918895
+                                        OR  |  -.1273333   .0059509   -21.40   0.000    -.1389968   -.1156698
+                                        PA  |  -.1018041   .0060462   -16.84   0.000    -.1136544   -.0899538
+                                        RI  |  -.0185703   .0058823    -3.16   0.002    -.0300993   -.0070413
+                                        SC  |  -.0900618   .0048578   -18.54   0.000    -.0995828   -.0805408
+                                        SD  |  -.2165805   .0070474   -30.73   0.000    -.2303931   -.2027679
+                                        TN  |  -.0417703   .0040422   -10.33   0.000    -.0496928   -.0338478
+                                        TX  |   .0482216   .0052133     9.25   0.000     .0380037    .0584394
+                                        UT  |  -.0327845   .0065872    -4.98   0.000    -.0456951   -.0198739
+                                        VT  |  -.0934066   .0068783   -13.58   0.000    -.1068879   -.0799253
+                                        VA  |  -.0886946   .0035201   -25.20   0.000    -.0955937   -.0817954
+                                        WA  |  -.0421204   .0072882    -5.78   0.000    -.0564051   -.0278357
+                                        WV  |  -.0166543   .0077077    -2.16   0.031     -.031761   -.0015475
+                                        WI  |  -.1828109   .0062902   -29.06   0.000    -.1951395   -.1704822
+                                        WY  |   .2028434   .0134621    15.07   0.000     .1764582    .2292285
+                                            |
+                                       year |
+                                      1984  |   .0311905   .0466014     0.67   0.503    -.0601465    .1225274
+                                      1985  |   .0575855   .0526387     1.09   0.274    -.0455845    .1607554
+                                      1986  |   -.050406   .0719868    -0.70   0.484    -.1914976    .0906856
+                                      1987  |    .150935   .0530063     2.85   0.004     .0470446    .2548253
+                                      1988  |   .0971106   .0489493     1.98   0.047     .0011719    .1930494
+                                      1989  |   .0024996   .0622296     0.04   0.968    -.1194681    .1244674
+                                      1990  |  -.0762625   .0812367    -0.94   0.348    -.2354834    .0829584
+                                      1991  |  -.1257199     .05852    -2.15   0.032     -.240417   -.0110227
+                                      1992  |   .1037565   .0558778     1.86   0.063     -.005762    .2132751
+                                      1993  |   .0643856   .0573328     1.12   0.261    -.0479847    .1767559
+                                      1994  |    .063005   .0659894     0.95   0.340    -.0663318    .1923418
+                                      1995  |   .0518954   .0698693     0.74   0.458    -.0850459    .1888367
+                                      1996  |   -.050095   .0670949    -0.75   0.455    -.1815985    .0814086
+                                      1997  |   .0159554   .0734144     0.22   0.828    -.1279343    .1598451
+                                      1998  |  -.0538185   .0806127    -0.67   0.504    -.2118166    .1041796
+                                      1999  |  -.0624358   .0723184    -0.86   0.388    -.2041772    .0793056
+                                      2000  |  -.1297189   .0749164    -1.73   0.083    -.2765523    .0171145
+                                            |
+                                      _cons |  -1.290713   .1441394    -8.95   0.000    -1.573221   -1.008205
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", replace ctitle("No Macro Controls")
+../Tables/educ_table_1.doc
+dir : seeout
+.         logit rigid inflation_college college `individual_controls' i.stfips i.year if year <= 2000, cluster(stfips)
+
+note: 23.occ != 0 predicts failure perfectly;
+      23.occ omitted and 1 obs not used.
+
+Iteration 0:   log pseudolikelihood = -59078.122  
+Iteration 1:   log pseudolikelihood = -58088.759  
+Iteration 2:   log pseudolikelihood = -58071.345  
+Iteration 3:   log pseudolikelihood = -58071.342  
+
+Logistic regression                                    Number of obs = 115,066
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -58071.342                      Pseudo R2     =  0.0170
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |   .0051906    .032345     0.16   0.873    -.0582044    .0685855
+                                    college |  -.1062985   .0431147    -2.47   0.014    -.1908018   -.0217952
+                                       educ |   .0134034   .0054443     2.46   0.014     .0027327     .024074
+                                 experience |   .0105123   .0021164     4.97   0.000     .0063643    .0146603
+                                experience2 |   .0000322   .0000409     0.79   0.432     -.000048    .0001124
+                                     female |  -.0484718   .0204949    -2.37   0.018    -.0886412   -.0083024
+                                      white |  -.0140458   .0178987    -0.78   0.433    -.0491266     .021035
+                                    married |    .013951   .0157473     0.89   0.376    -.0169131     .044815
+                                      union |  -.1802909   .0187144    -9.63   0.000    -.2169704   -.1436114
+                                            |
+                                        ind |
+                                Mining/Oil  |  -.2751889   .1317841    -2.09   0.037     -.533481   -.0168967
+                              Construction  |  -.1804013   .0975056    -1.85   0.064    -.3715087    .0107061
+                             Manufacturing  |  -.4804526   .0912146    -5.27   0.000    -.6592299   -.3016754
+                           Wholesale Trade  |  -.2637648   .0967544    -2.73   0.006    -.4533999   -.0741297
+                              Retail Trade  |  -.2100801   .1037793    -2.02   0.043    -.4134838   -.0066763
+                Transportation/Warehousing  |  -.3111759   .1042484    -2.98   0.003     -.515499   -.1068529
+                                 Utilities  |  -.6619487   .1114788    -5.94   0.000    -.8804431   -.4434543
+                            Communications  |  -.5001841   .1078718    -4.64   0.000     -.711609   -.2887592
+                         Finance/Insurance  |  -.6150401   .1109983    -5.54   0.000    -.8325928   -.3974875
+                               Real Estate  |  -.0385601   .1268316    -0.30   0.761    -.2871455    .2100253
+Professional/Scientific/Technical Services  |  -.2369276   .1176012    -2.01   0.044    -.4674217   -.0064336
+                                Consulting  |  -.1197961   .3895049    -0.31   0.758    -.8832117    .6436194
+  Business Administrative/Support Services  |   -.098453   .1045541    -0.94   0.346    -.3033752    .1064692
+                                 Education  |  -.6109043     .10221    -5.98   0.000    -.8112321   -.4105764
+              Healthcare/Social Assistance  |  -.5869011   .0947363    -6.20   0.000    -.7725809   -.4012213
+             Arts/Entertainment/Recreation  |  -.2233747   .0980282    -2.28   0.023    -.4155066   -.0312429
+               Accommodation/Food Services  |  -.3121063   .1143327    -2.73   0.006    -.5361942   -.0880184
+                            Other Services  |   .1168101   .1130968     1.03   0.302    -.1048555    .3384758
+                     Public Administration  |  -.6615403   .1068722    -6.19   0.000    -.8710059   -.4520746
+                                            |
+                                        occ |
+                      Financial Operations  |   .0912656   .1128095     0.81   0.419    -.1298371    .3123682
+                  Computer/Math Operations  |    .166672   .0667646     2.50   0.013     .0358158    .2975282
+                  Architecture/Engineering  |   .0088481   .1029167     0.09   0.931    -.1928649    .2105611
+             Life/Physical/Social Sciences  |   .0259288   .1687577     0.15   0.878    -.3048302    .3566878
+                 Community/Social Services  |   .3665045   .1390803     2.64   0.008      .093912    .6390969
+                                     Legal  |   .1997268   .2225237     0.90   0.369    -.2364116    .6358652
+                                 Education  |   .4590476   .1153951     3.98   0.000     .2328773    .6852178
+                  Arts/Entertainment/Media  |   .3804322   .1122814     3.39   0.001     .1603647    .6004996
+                   Healthcare Practitioner  |     .19709   .0919326     2.14   0.032     .0169053    .3772746
+                        Healthcare Support  |   .0584934   .0873747     0.67   0.503    -.1127579    .2297447
+                       Protective Services  |    .232523   .0930811     2.50   0.012     .0500874    .4149586
+                             Food Services  |   .4378257   .0758158     5.77   0.000     .2892293     .586422
+                                  Cleaning  |   .1909455   .0798601     2.39   0.017     .0344226    .3474684
+                         Personal Services  |   .5747655   .1043188     5.51   0.000     .3703044    .7792266
+                                     Sales  |   .0689684   .0808033     0.85   0.393    -.0894031    .2273399
+                    Administrative Support  |   .1258336   .0755329     1.67   0.096    -.0222082    .2738753
+                  Farming/Fishing/Forestry  |   .4079762   .1242429     3.28   0.001     .1644646    .6514878
+                  Installation/Maintenance  |   .1210258   .0756993     1.60   0.110    -.0273421    .2693938
+                                Production  |   .1331717   .0842028     1.58   0.114    -.0318627    .2982061
+                            Transportation  |   .2550923   .0774514     3.29   0.001     .1032902    .4068943
+                           Material Moving  |          0  (empty)
+                                            |
+                                     stfips |
+                                        AK  |     .12882   .0097952    13.15   0.000     .1096218    .1480182
+                                        AZ  |  -.1679613   .0051963   -32.32   0.000    -.1781459   -.1577767
+                                        AR  |  -.0374421     .00323   -11.59   0.000    -.0437727   -.0311114
+                                        CA  |  -.0124171   .0052994    -2.34   0.019    -.0228037   -.0020304
+                                        CO  |   -.044469   .0056033    -7.94   0.000    -.0554514   -.0334867
+                                        CT  |  -.2922974   .0050317   -58.09   0.000    -.3021593   -.2824354
+                                        DE  |  -.1838796   .0039856   -46.14   0.000    -.1916913   -.1760679
+                                        DC  |  -.4908238   .0132595   -37.02   0.000     -.516812   -.4648357
+                                        FL  |  -.1464126   .0053381   -27.43   0.000     -.156875   -.1359502
+                                        GA  |  -.0667025   .0047495   -14.04   0.000    -.0760113   -.0573937
+                                        HI  |  -.0841151    .015414    -5.46   0.000    -.1143259   -.0539042
+                                        ID  |  -.1211692   .0056674   -21.38   0.000    -.1322772   -.1100612
+                                        IL  |  -.1500749   .0052512   -28.58   0.000    -.1603671   -.1397827
+                                        IN  |  -.1638691    .005168   -31.71   0.000    -.1739982     -.15374
+                                        IA  |  -.1255229   .0060876   -20.62   0.000    -.1374544   -.1135914
+                                        KS  |   -.117781   .0060117   -19.59   0.000    -.1295637   -.1059982
+                                        KY  |  -.0530286   .0049357   -10.74   0.000    -.0627024   -.0433548
+                                        LA  |  -.0540362   .0041537   -13.01   0.000    -.0621774   -.0458951
+                                        ME  |  -.1924159     .00652   -29.51   0.000    -.2051948   -.1796369
+                                        MD  |  -.0917957   .0051524   -17.82   0.000    -.1018943   -.0816972
+                                        MA  |  -.0641444   .0068379    -9.38   0.000    -.0775464   -.0507424
+                                        MI  |  -.0304211   .0065616    -4.64   0.000    -.0432816   -.0175605
+                                        MN  |  -.1762233   .0071972   -24.49   0.000    -.1903296   -.1621171
+                                        MS  |   .0750962   .0050321    14.92   0.000     .0652336    .0849589
+                                        MO  |  -.1543831   .0040109   -38.49   0.000    -.1622444   -.1465219
+                                        MT  |  -.0279972   .0079935    -3.50   0.000    -.0436642   -.0123302
+                                        NE  |   -.165147    .006608   -24.99   0.000    -.1780985   -.1521955
+                                        NV  |  -.0284644   .0150668    -1.89   0.059    -.0579947    .0010659
+                                        NH  |  -.2078468   .0062471   -33.27   0.000    -.2200909   -.1956027
+                                        NJ  |  -.1215381   .0055365   -21.95   0.000    -.1323894   -.1106869
+                                        NM  |  -.0990762   .0068939   -14.37   0.000     -.112588   -.0855644
+                                        NY  |  -.0271905   .0063651    -4.27   0.000    -.0396658   -.0147152
+                                        NC  |  -.2121793   .0051654   -41.08   0.000    -.2223034   -.2020553
+                                        ND  |  -.0240121   .0085223    -2.82   0.005    -.0407155   -.0073086
+                                        OH  |  -.1426978   .0055566   -25.68   0.000    -.1535886   -.1318071
+                                        OK  |   .0828402   .0046171    17.94   0.000     .0737909    .0918895
+                                        OR  |  -.1273333   .0059509   -21.40   0.000    -.1389968   -.1156698
+                                        PA  |  -.1018041   .0060462   -16.84   0.000    -.1136544   -.0899538
+                                        RI  |  -.0185703   .0058823    -3.16   0.002    -.0300993   -.0070413
+                                        SC  |  -.0900618   .0048578   -18.54   0.000    -.0995828   -.0805408
+                                        SD  |  -.2165805   .0070474   -30.73   0.000    -.2303931   -.2027679
+                                        TN  |  -.0417703   .0040422   -10.33   0.000    -.0496928   -.0338478
+                                        TX  |   .0482216   .0052133     9.25   0.000     .0380037    .0584394
+                                        UT  |  -.0327845   .0065872    -4.98   0.000    -.0456951   -.0198739
+                                        VT  |  -.0934066   .0068783   -13.58   0.000    -.1068879   -.0799253
+                                        VA  |  -.0886946   .0035201   -25.20   0.000    -.0955937   -.0817954
+                                        WA  |  -.0421204   .0072882    -5.78   0.000    -.0564051   -.0278357
+                                        WV  |  -.0166543   .0077077    -2.16   0.031     -.031761   -.0015475
+                                        WI  |  -.1828109   .0062902   -29.06   0.000    -.1951395   -.1704822
+                                        WY  |   .2028434   .0134621    15.07   0.000     .1764582    .2292285
+                                            |
+                                       year |
+                                      1984  |   .0311905   .0466014     0.67   0.503    -.0601465    .1225274
+                                      1985  |   .0575855   .0526387     1.09   0.274    -.0455845    .1607554
+                                      1986  |   -.050406   .0719868    -0.70   0.484    -.1914976    .0906856
+                                      1987  |    .150935   .0530063     2.85   0.004     .0470446    .2548253
+                                      1988  |   .0971106   .0489493     1.98   0.047     .0011719    .1930494
+                                      1989  |   .0024996   .0622296     0.04   0.968    -.1194681    .1244674
+                                      1990  |  -.0762625   .0812367    -0.94   0.348    -.2354834    .0829584
+                                      1991  |  -.1257199     .05852    -2.15   0.032     -.240417   -.0110227
+                                      1992  |   .1037565   .0558778     1.86   0.063     -.005762    .2132751
+                                      1993  |   .0643856   .0573328     1.12   0.261    -.0479847    .1767559
+                                      1994  |    .063005   .0659894     0.95   0.340    -.0663318    .1923418
+                                      1995  |   .0518954   .0698693     0.74   0.458    -.0850459    .1888367
+                                      1996  |   -.050095   .0670949    -0.75   0.455    -.1815985    .0814086
+                                      1997  |   .0159554   .0734144     0.22   0.828    -.1279343    .1598451
+                                      1998  |  -.0538185   .0806127    -0.67   0.504    -.2118166    .1041796
+                                      1999  |  -.0624358   .0723184    -0.86   0.388    -.2041772    .0793056
+                                      2000  |  -.1297189   .0749164    -1.73   0.083    -.2765523    .0171145
+                                            |
+                                      _cons |  -1.290713   .1441394    -8.95   0.000    -1.573221   -1.008205
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", append ctitle("Macro Controls")
+../Tables/educ_table_1.doc
+dir : seeout
+.         logit rigid inflation_college college inflation productivity_growth unemployment `individual_controls' i.stfips if 
+> year <= 2000, cluster(stfips)
+
+note: 23.occ != 0 predicts failure perfectly;
+      23.occ omitted and 1 obs not used.
+
+Iteration 0:   log pseudolikelihood = -59078.122  
+Iteration 1:   log pseudolikelihood = -58092.201  
+Iteration 2:   log pseudolikelihood = -58074.907  
+Iteration 3:   log pseudolikelihood = -58074.904  
+
+Logistic regression                                    Number of obs = 115,066
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -58074.904                      Pseudo R2     =  0.0170
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |  -.0008822    .032152    -0.03   0.978    -.0638989    .0621345
+                                    college |  -.1108824   .0435094    -2.55   0.011    -.1961593   -.0256056
+                                  inflation |    -.02152   .0332983    -0.65   0.518    -.0867835    .0437435
+                        productivity_growth |  -.0297739   .0076159    -3.91   0.000    -.0447009    -.014847
+                               unemployment |   .0454606   .0069161     6.57   0.000     .0319052     .059016
+                                       educ |   .0147733   .0055779     2.65   0.008     .0038409    .0257057
+                                 experience |   .0107217   .0020976     5.11   0.000     .0066104     .014833
+                                experience2 |     .00003   .0000409     0.73   0.463    -.0000502    .0001102
+                                     female |  -.0471628   .0205114    -2.30   0.021    -.0873643   -.0069612
+                                      white |  -.0141979   .0173156    -0.82   0.412    -.0481357      .01974
+                                    married |   .0145194   .0159887     0.91   0.364    -.0168179    .0458567
+                                      union |  -.1817662   .0185196    -9.81   0.000    -.2180639   -.1454686
+                                            |
+                                        ind |
+                                Mining/Oil  |   -.282499   .1318754    -2.14   0.032      -.54097   -.0240279
+                              Construction  |  -.1732002   .0982809    -1.76   0.078    -.3658273    .0194268
+                             Manufacturing  |  -.4773321   .0920187    -5.19   0.000    -.6576855   -.2969787
+                           Wholesale Trade  |  -.2642804   .0984845    -2.68   0.007    -.4573064   -.0712543
+                              Retail Trade  |  -.2075245   .1042429    -1.99   0.047    -.4118369   -.0032122
+                Transportation/Warehousing  |  -.3055584   .1050531    -2.91   0.004    -.5114587   -.0996582
+                                 Utilities  |   -.659771   .1123831    -5.87   0.000    -.8800378   -.4395042
+                            Communications  |  -.5006147   .1088145    -4.60   0.000    -.7138873   -.2873422
+                         Finance/Insurance  |  -.6158822   .1118938    -5.50   0.000    -.8351901   -.3965743
+                               Real Estate  |  -.0380844   .1272478    -0.30   0.765    -.2874855    .2113167
+Professional/Scientific/Technical Services  |  -.2349329   .1181194    -1.99   0.047    -.4664426   -.0034231
+                                Consulting  |  -.1163637   .3873779    -0.30   0.764    -.8756105    .6428831
+  Business Administrative/Support Services  |   -.094884   .1057586    -0.90   0.370    -.3021671    .1123991
+                                 Education  |  -.6129372    .102968    -5.95   0.000    -.8147507   -.4111237
+              Healthcare/Social Assistance  |  -.5863854   .0954604    -6.14   0.000    -.7734843   -.3992865
+             Arts/Entertainment/Recreation  |  -.2236925   .0994634    -2.25   0.025    -.4186372   -.0287479
+               Accommodation/Food Services  |  -.3089445   .1151961    -2.68   0.007    -.5347247   -.0831643
+                            Other Services  |   .1174785   .1140353     1.03   0.303    -.1060266    .3409837
+                     Public Administration  |   -.662338   .1085985    -6.10   0.000    -.8751871   -.4494889
+                                            |
+                                        occ |
+                      Financial Operations  |   .1000303   .1133275     0.88   0.377    -.1220876    .3221482
+                  Computer/Math Operations  |   .1896467   .0672223     2.82   0.005     .0578933       .3214
+                  Architecture/Engineering  |   .0163619    .102349     0.16   0.873    -.1842384    .2169622
+             Life/Physical/Social Sciences  |   .0281791   .1688291     0.17   0.867    -.3027199    .3590782
+                 Community/Social Services  |   .3732915   .1393994     2.68   0.007     .1000737    .6465093
+                                     Legal  |    .196167   .2206144     0.89   0.374    -.2362292    .6285632
+                                 Education  |    .453822   .1161114     3.91   0.000     .2262478    .6813963
+                  Arts/Entertainment/Media  |   .3868032   .1123306     3.44   0.001     .1666392    .6069671
+                   Healthcare Practitioner  |   .2109117   .0930951     2.27   0.023     .0284487    .3933747
+                        Healthcare Support  |   .0695558    .087821     0.79   0.428    -.1025702    .2416818
+                       Protective Services  |   .2464209   .0927503     2.66   0.008     .0646336    .4282081
+                             Food Services  |   .4487194   .0763924     5.87   0.000     .2989931    .5984458
+                                  Cleaning  |   .2044162   .0817028     2.50   0.012     .0442817    .3645506
+                         Personal Services  |   .5915896   .1044778     5.66   0.000     .3868168    .7963624
+                                     Sales  |   .0821354   .0813753     1.01   0.313    -.0773573     .241628
+                    Administrative Support  |   .1361196   .0756434     1.80   0.072    -.0121389     .284378
+                  Farming/Fishing/Forestry  |   .4293582    .124452     3.45   0.001     .1854369    .6732796
+                  Installation/Maintenance  |   .1340055   .0765089     1.75   0.080    -.0159492    .2839601
+                                Production  |   .1466112   .0851437     1.72   0.085    -.0202674    .3134898
+                            Transportation  |    .265198   .0782466     3.39   0.001     .1118375    .4185585
+                           Material Moving  |          0  (empty)
+                                            |
+                                     stfips |
+                                        AK  |   .1035321   .0091472    11.32   0.000     .0856039    .1214602
+                                        AZ  |   -.092051   .0140631    -6.55   0.000    -.1196141   -.0644878
+                                        AR  |  -.0017795   .0063763    -0.28   0.780    -.0142767    .0107177
+                                        CA  |    .002132   .0062007     0.34   0.731    -.0100212    .0142852
+                                        CO  |   .0639271   .0178047     3.59   0.000     .0290304    .0988237
+                                        CT  |  -.1612007   .0214851    -7.50   0.000    -.2033108   -.1190906
+                                        DE  |  -.0411624   .0220758    -1.86   0.062    -.0844302    .0021055
+                                        DC  |  -.4838241   .0128558   -37.63   0.000     -.509021   -.4586272
+                                        FL  |  -.0838381    .011482    -7.30   0.000    -.1063425   -.0613338
+                                        GA  |   .0314798   .0150472     2.09   0.036     .0019878    .0609717
+                                        HI  |   .0442944   .0236415     1.87   0.061    -.0020422    .0906309
+                                        ID  |  -.0644373   .0117573    -5.48   0.000    -.0874813   -.0413934
+                                        IL  |  -.1265656   .0067679   -18.70   0.000    -.1398304   -.1133008
+                                        IN  |  -.0646852   .0166427    -3.89   0.000    -.0973043   -.0320662
+                                        IA  |   .0053461   .0214979     0.25   0.804    -.0367889    .0474812
+                                        KS  |   .0173293   .0225708     0.77   0.443    -.0269086    .0615673
+                                        KY  |  -.0186159   .0074255    -2.51   0.012    -.0331697   -.0040621
+                                        LA  |  -.0838728   .0064449   -13.01   0.000    -.0965046    -.071241
+                                        ME  |  -.1023022   .0154963    -6.60   0.000    -.1326745     -.07193
+                                        MD  |   .0300605   .0187614     1.60   0.109    -.0067111    .0668322
+                                        MA  |   .0306145   .0159344     1.92   0.055    -.0006163    .0618453
+                                        MI  |  -.0332933   .0060102    -5.54   0.000    -.0450731   -.0215134
+                                        MN  |  -.0456657   .0223221    -2.05   0.041    -.0894162   -.0019151
+                                        MS  |    .051662   .0060951     8.48   0.000     .0397159    .0636081
+                                        MO  |  -.0794385   .0120748    -6.58   0.000    -.1031047   -.0557722
+                                        MT  |   .0217144   .0120223     1.81   0.071    -.0018489    .0452778
+                                        NE  |   .0277384   .0308684     0.90   0.369    -.0327625    .0882394
+                                        NV  |   .0470962   .0188705     2.50   0.013     .0101108    .0840817
+                                        NH  |   -.057255   .0247037    -2.32   0.020    -.1056735   -.0088366
+                                        NJ  |  -.0384346   .0144172    -2.67   0.008    -.0666917   -.0101774
+                                        NM  |  -.0888188   .0072936   -12.18   0.000     -.103114   -.0745236
+                                        NY  |   .0192165   .0108352     1.77   0.076    -.0020202    .0404531
+                                        NC  |  -.0830641   .0193334    -4.30   0.000    -.1209568   -.0451714
+                                        ND  |   .1275943    .025322     5.04   0.000     .0779642    .1772244
+                                        OH  |  -.0967116   .0095465   -10.13   0.000    -.1154225   -.0780007
+                                        OK  |   .1686809   .0147198    11.46   0.000     .1398306    .1975311
+                                        OR  |  -.0872985   .0093919    -9.30   0.000    -.1057064   -.0688907
+                                        PA  |  -.0453792   .0113321    -4.00   0.000    -.0675897   -.0231686
+                                        RI  |   .0695277   .0148854     4.67   0.000     .0403528    .0987027
+                                        SC  |  -.0084911   .0124051    -0.68   0.494    -.0328047    .0158226
+                                        SD  |  -.0409666   .0285377    -1.44   0.151    -.0968994    .0149661
+                                        TN  |   .0184536   .0099868     1.85   0.065    -.0011203    .0380275
+                                        TX  |   .0856712   .0081716    10.48   0.000     .0696552    .1016873
+                                        UT  |   .0879146   .0206069     4.27   0.000     .0475259    .1283033
+                                        VT  |   .0459243   .0227825     2.02   0.044     .0012714    .0905771
+                                        VA  |   .0484618   .0208535     2.32   0.020     .0075897    .0893339
+                                        WA  |  -.0040796   .0099203    -0.41   0.681    -.0235231    .0153639
+                                        WV  |  -.1191578   .0152364    -7.82   0.000    -.1490207    -.089295
+                                        WI  |  -.0663493   .0190341    -3.49   0.000    -.1036555   -.0290431
+                                        WY  |   .2789644   .0198322    14.07   0.000     .2400941    .3178347
+                                            |
+                                      _cons |  -1.593058   .1511597   -10.54   0.000    -1.889326   -1.296791
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", append ctitle("No Year FE")
+../Tables/educ_table_1.doc
+dir : seeout
+.         
+.         logit rigid inflation_college college `individual_controls' i.stfips i.year if year >= 2000, cluster(stfips)
+
+Iteration 0:   log pseudolikelihood = -89202.033  
+Iteration 1:   log pseudolikelihood = -87871.027  
+Iteration 2:   log pseudolikelihood = -87859.314  
+Iteration 3:   log pseudolikelihood = -87859.312  
+
+Logistic regression                                    Number of obs = 163,607
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -87859.312                      Pseudo R2     =  0.0151
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |  -.0128799   .0242389    -0.53   0.595    -.0603873    .0346275
+                                    college |  -.0847221   .0415442    -2.04   0.041    -.1661472   -.0032969
+                                       educ |   .0261021   .0045397     5.75   0.000     .0172044    .0349998
+                                 experience |   .0048052    .001246     3.86   0.000     .0023631    .0072472
+                                experience2 |   .0000962   .0000232     4.14   0.000     .0000506    .0001417
+                                     female |   .0393477   .0142928     2.75   0.006     .0113343    .0673611
+                                      white |   .0780231   .0180938     4.31   0.000     .0425599    .1134864
+                                    married |  -.0305255   .0115291    -2.65   0.008    -.0531221    -.007929
+                                      union |  -.2857571   .0248951   -11.48   0.000    -.3345507   -.2369636
+                                            |
+                                        ind |
+                                Mining/Oil  |  -.3485918   .1103497    -3.16   0.002    -.5648732   -.1323103
+                              Construction  |  -.0397898   .1063947    -0.37   0.708    -.2483196    .1687401
+                             Manufacturing  |    -.36738   .1052353    -3.49   0.000    -.5736374   -.1611226
+                           Wholesale Trade  |  -.3322272   .1039742    -3.20   0.001    -.5360128   -.1284416
+                              Retail Trade  |  -.3749308     .10004    -3.75   0.000    -.5710056    -.178856
+                Transportation/Warehousing  |  -.3280226     .09696    -3.38   0.001    -.5180607   -.1379844
+                                 Utilities  |  -.4938207   .1187663    -4.16   0.000    -.7265984   -.2610429
+                            Communications  |  -.3419976   .1019784    -3.35   0.001    -.5418717   -.1421236
+                         Finance/Insurance  |  -.5257336    .105716    -4.97   0.000    -.7329332   -.3185339
+                               Real Estate  |  -.1262043   .1115769    -1.13   0.258     -.344891    .0924823
+Professional/Scientific/Technical Services  |  -.0795095   .0992917    -0.80   0.423    -.2741177    .1150987
+                                Consulting  |  -.1810147   .3516818    -0.51   0.607    -.8702984    .5082689
+  Business Administrative/Support Services  |  -.0071938   .1008372    -0.07   0.943     -.204831    .1904434
+                                 Education  |  -.3740409   .0998449    -3.75   0.000    -.5697333   -.1783485
+              Healthcare/Social Assistance  |  -.4313541   .0950062    -4.54   0.000    -.6175628   -.2451454
+             Arts/Entertainment/Recreation  |  -.1318328   .0912123    -1.45   0.148    -.3106057      .04694
+               Accommodation/Food Services  |  -.1449858   .0906115    -1.60   0.110    -.3225811    .0326095
+                            Other Services  |   .0751693   .1012082     0.74   0.458    -.1231952    .2735337
+                     Public Administration  |  -.5328648   .1003423    -5.31   0.000     -.729532   -.3361975
+                                            |
+                                        occ |
+                      Financial Operations  |  -.0972125   .0511554    -1.90   0.057    -.1974753    .0030503
+                  Computer/Math Operations  |    .089437   .0777404     1.15   0.250    -.0629313    .2418053
+                  Architecture/Engineering  |  -.1127298   .0669753    -1.68   0.092     -.243999    .0185394
+             Life/Physical/Social Sciences  |  -.0767762   .0935474    -0.82   0.412    -.2601257    .1065733
+                 Community/Social Services  |   .0944831   .0731304     1.29   0.196    -.0488499    .2378161
+                                     Legal  |   .0416611   .0964839     0.43   0.666    -.1474438    .2307661
+                                 Education  |   .1139424   .0638281     1.79   0.074    -.0111583    .2390431
+                  Arts/Entertainment/Media  |   .2389458   .0716769     3.33   0.001     .0984615      .37943
+                   Healthcare Practitioner  |  -.1320614   .0420117    -3.14   0.002    -.2144027   -.0497201
+                        Healthcare Support  |   .0746196   .0502548     1.48   0.138     -.023878    .1731173
+                       Protective Services  |  -.0296248   .0480801    -0.62   0.538    -.1238601    .0646105
+                             Food Services  |    .015844   .0428417     0.37   0.712    -.0681242    .0998121
+                                  Cleaning  |  -.0571509   .0440007    -1.30   0.194    -.1433906    .0290889
+                         Personal Services  |    .248913   .0681756     3.65   0.000     .1152913    .3825347
+                                     Sales  |  -.0816703   .0469532    -1.74   0.082    -.1736969    .0103564
+                    Administrative Support  |  -.0415474   .0370813    -1.12   0.263    -.1142253    .0311306
+                  Farming/Fishing/Forestry  |     .10935      .0957     1.14   0.253    -.0782186    .2969186
+                              Construction  |  -.0466684    .055792    -0.84   0.403    -.1560187    .0626819
+                  Installation/Maintenance  |  -.0669851   .0421882    -1.59   0.112    -.1496725    .0157024
+                                Production  |  -.0651291   .0492606    -1.32   0.186    -.1616781      .03142
+                            Transportation  |  -.0378943   .0473199    -0.80   0.423    -.1306396     .054851
+                           Material Moving  |  -.0590658   .0446097    -1.32   0.185    -.1464993    .0283676
+                                            |
+                                     stfips |
+                                        AK  |   .0360669   .0069919     5.16   0.000     .0223629    .0497708
+                                        AZ  |  -.0592499   .0065713    -9.02   0.000    -.0721294   -.0463704
+                                        AR  |  -.0170778   .0033558    -5.09   0.000     -.023655   -.0105006
+                                        CA  |   .0230981   .0092364     2.50   0.012      .004995    .0412012
+                                        CO  |  -.0594267   .0049559   -11.99   0.000    -.0691402   -.0497132
+                                        CT  |   .0070955   .0055583     1.28   0.202    -.0037985    .0179896
+                                        DE  |   .0049645   .0051581     0.96   0.336    -.0051451    .0150741
+                                        DC  |    .073023   .0126093     5.79   0.000     .0483092    .0977368
+                                        FL  |   .1632097   .0048972    33.33   0.000     .1536114    .1728079
+                                        GA  |   .0960389   .0032132    29.89   0.000     .0897412    .1023366
+                                        HI  |   .0555193   .0147115     3.77   0.000     .0266853    .0843532
+                                        ID  |  -.0442057   .0059537    -7.42   0.000    -.0558747   -.0325367
+                                        IL  |   .0366304   .0048336     7.58   0.000     .0271566    .0461042
+                                        IN  |   .0452818   .0043766    10.35   0.000     .0367039    .0538598
+                                        IA  |  -.1390976   .0062905   -22.11   0.000    -.1514267   -.1267686
+                                        KS  |  -.0847633   .0044747   -18.94   0.000    -.0935335   -.0759932
+                                        KY  |  -.0564449   .0048389   -11.66   0.000    -.0659289   -.0469609
+                                        LA  |   .0809175   .0070619    11.46   0.000     .0670765    .0947586
+                                        ME  |  -.0263028   .0073883    -3.56   0.000    -.0407836   -.0118219
+                                        MD  |  -.1148123   .0053791   -21.34   0.000    -.1253552   -.1042694
+                                        MA  |   .0552684   .0056204     9.83   0.000     .0442527    .0662841
+                                        MI  |   .0746076   .0053101    14.05   0.000     .0641999    .0850153
+                                        MN  |  -.1194867   .0057632   -20.73   0.000    -.1307822   -.1081911
+                                        MS  |   .1273934   .0035775    35.61   0.000     .1203817    .1344051
+                                        MO  |  -.0792705    .004858   -16.32   0.000    -.0887921   -.0697489
+                                        MT  |  -.1578347   .0091461   -17.26   0.000    -.1757607   -.1399087
+                                        NE  |  -.1402077   .0043154   -32.49   0.000    -.1486658   -.1317496
+                                        NV  |  -.1139532   .0124039    -9.19   0.000    -.1382643   -.0896421
+                                        NH  |  -.0595875   .0056292   -10.59   0.000    -.0706205   -.0485546
+                                        NJ  |   .1636368   .0060219    27.17   0.000     .1518342    .1754394
+                                        NM  |   .0551969   .0071151     7.76   0.000     .0412515    .0691423
+                                        NY  |   .0783153   .0064052    12.23   0.000     .0657614    .0908692
+                                        NC  |   .0483618   .0028162    17.17   0.000      .042842    .0538815
+                                        ND  |  -.1970705   .0059723   -33.00   0.000    -.2087759    -.185365
+                                        OH  |  -.0271871   .0048952    -5.55   0.000    -.0367814   -.0175928
+                                        OK  |    .157327   .0034453    45.66   0.000     .1505743    .1640797
+                                        OR  |  -.1382455   .0067881   -20.37   0.000    -.1515499   -.1249412
+                                        PA  |  -.0168009   .0053895    -3.12   0.002    -.0273641   -.0062377
+                                        RI  |   .0377818   .0057788     6.54   0.000     .0264556    .0491081
+                                        SC  |  -.1080872   .0032714   -33.04   0.000    -.1144991   -.1016753
+                                        SD  |   -.120112   .0054179   -22.17   0.000     -.130731   -.1094931
+                                        TN  |   -.062624   .0041397   -15.13   0.000    -.0707378   -.0545103
+                                        TX  |   .0880607   .0057175    15.40   0.000     .0768546    .0992668
+                                        UT  |  -.0131238   .0056672    -2.32   0.021    -.0242313   -.0020163
+                                        VT  |  -.1470323   .0064123   -22.93   0.000    -.1596002   -.1344643
+                                        VA  |   .0825928   .0034475    23.96   0.000     .0758357    .0893498
+                                        WA  |   .0130738   .0076306     1.71   0.087    -.0018819    .0280296
+                                        WV  |  -.0541396   .0089596    -6.04   0.000    -.0717002   -.0365791
+                                        WI  |   .0031177   .0051302     0.61   0.543    -.0069372    .0131727
+                                        WY  |  -.0817408   .0095079    -8.60   0.000     -.100376   -.0631056
+                                            |
+                                       year |
+                                      2001  |    .022922   .0611348     0.37   0.708       -.0969     .142744
+                                      2002  |    .155232   .0833662     1.86   0.063    -.0081627    .3186268
+                                      2003  |   .2198882   .0521685     4.21   0.000     .1176398    .3221365
+                                      2004  |    .273331    .070371     3.88   0.000     .1354063    .4112556
+                                      2005  |   .1608141   .0504562     3.19   0.001     .0619217    .2597064
+                                      2006  |   .0415612   .0566737     0.73   0.463    -.0695173    .1526396
+                                      2007  |   .0381339   .0619881     0.62   0.538    -.0833605    .1596283
+                                      2008  |   .0175171   .0962012     0.18   0.856    -.1710339     .206068
+                                      2009  |   .2595787   .0568574     4.57   0.000     .1481401    .3710172
+                                      2010  |   .4420406   .0730534     6.05   0.000     .2988585    .5852227
+                                      2011  |   .4682587   .0538508     8.70   0.000     .3627132    .5738043
+                                      2012  |   .4215769    .071612     5.89   0.000     .2812198    .5619339
+                                      2013  |    .387954    .075367     5.15   0.000     .2402375    .5356706
+                                      2014  |   .3062559   .0817242     3.75   0.000     .1460794    .4664324
+                                      2015  |   .2879717   .1031954     2.79   0.005     .0857125     .490231
+                                      2016  |   .2264541   .0754891     3.00   0.003     .0784982      .37441
+                                      2017  |   .2280705   .0794094     2.87   0.004      .072431      .38371
+                                      2018  |   .1699046   .0890139     1.91   0.056    -.0045594    .3443686
+                                      2019  |   .1373962    .082266     1.67   0.095    -.0238421    .2986345
+                                      2020  |   .1917364   .0931649     2.06   0.040     .0091365    .3743362
+                                      2021  |   .1899304   .1171126     1.62   0.105    -.0396061    .4194668
+                                      2022  |   .0201438   .0852045     0.24   0.813     -.146854    .1871416
+                                      2023  |  -.0246699   .0644411    -0.38   0.702    -.1509721    .1016322
+                                            |
+                                      _cons |  -1.539989   .1086194   -14.18   0.000     -1.75288   -1.327099
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", append ctitle("No Macro Controls")
+../Tables/educ_table_1.doc
+dir : seeout
+.         logit rigid inflation_college college unemployment `individual_controls' i.stfips i.year if year >= 2000, cluster(s
+> tfips)
+
+Iteration 0:   log pseudolikelihood = -89202.033  
+Iteration 1:   log pseudolikelihood = -87868.608  
+Iteration 2:   log pseudolikelihood = -87856.828  
+Iteration 3:   log pseudolikelihood = -87856.826  
+
+Logistic regression                                    Number of obs = 163,607
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -87856.826                      Pseudo R2     =  0.0151
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |  -.0132108   .0243975    -0.54   0.588     -.061029    .0346074
+                                    college |  -.0850329   .0415565    -2.05   0.041    -.1664822   -.0035836
+                               unemployment |   .0162699   .0106917     1.52   0.128    -.0046854    .0372252
+                                       educ |   .0260703   .0045386     5.74   0.000     .0171748    .0349659
+                                 experience |   .0048175   .0012481     3.86   0.000     .0023713    .0072638
+                                experience2 |   .0000959   .0000233     4.12   0.000     .0000502    .0001415
+                                     female |   .0393689   .0142976     2.75   0.006      .011346    .0673917
+                                      white |   .0783205   .0180261     4.34   0.000       .04299     .113651
+                                    married |  -.0305389   .0115574    -2.64   0.008     -.053191   -.0078867
+                                      union |   -.285848   .0249217   -11.47   0.000    -.3346937   -.2370023
+                                            |
+                                        ind |
+                                Mining/Oil  |  -.3472642   .1106807    -3.14   0.002    -.5641945    -.130334
+                              Construction  |  -.0391592   .1064605    -0.37   0.713     -.247818    .1694997
+                             Manufacturing  |  -.3668727   .1053953    -3.48   0.000    -.5734436   -.1603018
+                           Wholesale Trade  |  -.3316845   .1039726    -3.19   0.001     -.535467    -.127902
+                              Retail Trade  |  -.3747721   .1001448    -3.74   0.000    -.5710523   -.1784919
+                Transportation/Warehousing  |  -.3274019   .0971657    -3.37   0.001    -.5178432   -.1369606
+                                 Utilities  |   -.493283   .1189339    -4.15   0.000    -.7263891   -.2601769
+                            Communications  |  -.3414321   .1020518    -3.35   0.001      -.54145   -.1414142
+                         Finance/Insurance  |   -.525355   .1058578    -4.96   0.000    -.7328325   -.3178775
+                               Real Estate  |  -.1253604   .1118269    -1.12   0.262     -.344537    .0938163
+Professional/Scientific/Technical Services  |  -.0789485   .0994231    -0.79   0.427    -.2738143    .1159173
+                                Consulting  |   -.180758   .3517609    -0.51   0.607    -.8701966    .5086806
+  Business Administrative/Support Services  |  -.0068351   .1009346    -0.07   0.946    -.2046632    .1909931
+                                 Education  |   -.373856   .0999978    -3.74   0.000    -.5698481   -.1778639
+              Healthcare/Social Assistance  |  -.4311805   .0951389    -4.53   0.000    -.6176493   -.2447116
+             Arts/Entertainment/Recreation  |  -.1319357   .0912461    -1.45   0.148    -.3107747    .0469033
+               Accommodation/Food Services  |  -.1445285   .0906254    -1.59   0.111     -.322151    .0330941
+                            Other Services  |   .0752575   .1013413     0.74   0.458    -.1233678    .2738829
+                     Public Administration  |  -.5325162    .100458    -5.30   0.000    -.7294102   -.3356221
+                                            |
+                                        occ |
+                      Financial Operations  |  -.0970879   .0511937    -1.90   0.058    -.1974256    .0032498
+                  Computer/Math Operations  |   .0896142   .0775834     1.16   0.248    -.0624465    .2416748
+                  Architecture/Engineering  |  -.1131522   .0669102    -1.69   0.091    -.2442938    .0179893
+             Life/Physical/Social Sciences  |  -.0761903   .0937936    -0.81   0.417    -.2600223    .1076417
+                 Community/Social Services  |   .0948649   .0730444     1.30   0.194    -.0482995    .2380294
+                                     Legal  |   .0412363   .0967817     0.43   0.670    -.1484523    .2309249
+                                 Education  |   .1140753   .0637885     1.79   0.074    -.0109479    .2390985
+                  Arts/Entertainment/Media  |   .2386725   .0716382     3.33   0.001     .0982642    .3790807
+                   Healthcare Practitioner  |  -.1319753   .0419775    -3.14   0.002    -.2142497    -.049701
+                        Healthcare Support  |   .0746651   .0501987     1.49   0.137    -.0237226    .1730528
+                       Protective Services  |  -.0296496   .0480606    -0.62   0.537    -.1238467    .0645474
+                             Food Services  |   .0159902   .0428613     0.37   0.709    -.0680164    .0999967
+                                  Cleaning  |  -.0571475   .0440098    -1.30   0.194    -.1434051    .0291101
+                         Personal Services  |   .2497732   .0680327     3.67   0.000     .1164316    .3831148
+                                     Sales  |  -.0816407   .0470259    -1.74   0.083    -.1738097    .0105284
+                    Administrative Support  |  -.0413545   .0370593    -1.12   0.264    -.1139894    .0312804
+                  Farming/Fishing/Forestry  |   .1102453   .0954176     1.16   0.248    -.0767697    .2972603
+                              Construction  |  -.0464178   .0557535    -0.83   0.405    -.1556926    .0628569
+                  Installation/Maintenance  |  -.0669617   .0422433    -1.59   0.113    -.1497572    .0158337
+                                Production  |  -.0647881   .0492028    -1.32   0.188    -.1612238    .0316477
+                            Transportation  |  -.0373866   .0473719    -0.79   0.430    -.1302337    .0554606
+                           Material Moving  |   -.059046   .0445634    -1.32   0.185    -.1463887    .0282966
+                                            |
+                                     stfips |
+                                        AK  |   .0230542   .0108067     2.13   0.033     .0018734     .044235
+                                        AZ  |   -.064247    .006438    -9.98   0.000    -.0768653   -.0516288
+                                        AR  |  -.0099258   .0063113    -1.57   0.116    -.0222957    .0024441
+                                        CA  |  -.0003647   .0171091    -0.02   0.983    -.0338979    .0331685
+                                        CO  |    -.04998   .0080675    -6.20   0.000     -.065792    -.034168
+                                        CT  |   .0074908   .0053553     1.40   0.162    -.0030054    .0179871
+                                        DE  |   .0142807    .009404     1.52   0.129    -.0041508    .0327122
+                                        DC  |   .0510384    .018356     2.78   0.005     .0150612    .0870156
+                                        FL  |   .1675697   .0062916    26.63   0.000     .1552384    .1799011
+                                        GA  |    .088685   .0059232    14.97   0.000     .0770757    .1002943
+                                        HI  |   .0813437   .0234926     3.46   0.001     .0352992    .1273883
+                                        ID  |  -.0301731   .0126327    -2.39   0.017    -.0549327   -.0054135
+                                        IL  |   .0229588   .0087523     2.62   0.009     .0058046     .040113
+                                        IN  |   .0453655   .0042631    10.64   0.000       .03701    .0537211
+                                        IA  |   -.108456   .0213835    -5.07   0.000    -.1503669   -.0665452
+                                        KS  |  -.0650728   .0138999    -4.68   0.000     -.092316   -.0378295
+                                        KY  |  -.0647916   .0063755   -10.16   0.000    -.0772873   -.0522959
+                                        LA  |   .0795565    .006935    11.47   0.000     .0659641    .0931489
+                                        ME  |  -.0159703   .0106613    -1.50   0.134    -.0368662    .0049255
+                                        MD  |  -.1007373   .0113397    -8.88   0.000    -.1229626    -.078512
+                                        MA  |   .0637917   .0090959     7.01   0.000      .045964    .0816193
+                                        MI  |   .0529636   .0147523     3.59   0.000     .0240496    .0818777
+                                        MN  |  -.0989802   .0149994    -6.60   0.000    -.1283786   -.0695819
+                                        MS  |   .1121991   .0108591    10.33   0.000     .0909156    .1334826
+                                        MO  |  -.0752425   .0061116   -12.31   0.000    -.0872211    -.063264
+                                        MT  |  -.1394976   .0173765    -8.03   0.000     -.173555   -.1054402
+                                        NE  |    -.09836   .0285039    -3.45   0.001    -.1542266   -.0424933
+                                        NV  |  -.1384579   .0180867    -7.66   0.000    -.1739072   -.1030087
+                                        NH  |  -.0285125   .0223609    -1.28   0.202    -.0723391    .0153141
+                                        NJ  |   .1599278   .0060417    26.47   0.000     .1480862    .1717693
+                                        NM  |   .0528139   .0072552     7.28   0.000     .0385941    .0670338
+                                        NY  |   .0755637   .0063573    11.89   0.000     .0631037    .0880238
+                                        NC  |   .0380251   .0072326     5.26   0.000     .0238495    .0522008
+                                        ND  |  -.1501712   .0330715    -4.54   0.000    -.2149902   -.0853522
+                                        OH  |  -.0332839   .0056702    -5.87   0.000    -.0443973   -.0221705
+                                        OK  |   .1792896   .0157271    11.40   0.000     .1484651    .2101141
+                                        OR  |  -.1496667   .0085378   -17.53   0.000    -.1664004    -.132933
+                                        PA  |  -.0154649   .0056709    -2.73   0.006    -.0265797     -.00435
+                                        RI  |   .0197258   .0125794     1.57   0.117    -.0049295     .044381
+                                        SC  |  -.1215816   .0096515   -12.60   0.000    -.1404982    -.102665
+                                        SD  |  -.0760609   .0303808    -2.50   0.012    -.1356061   -.0165157
+                                        TN  |  -.0635615    .003989   -15.93   0.000    -.0713797   -.0557433
+                                        TX  |   .0939478   .0070713    13.29   0.000     .0800882    .1078074
+                                        UT  |   .0139557   .0197624     0.71   0.480    -.0247779    .0526892
+                                        VT  |  -.1149464   .0235758    -4.88   0.000     -.161154   -.0687387
+                                        VA  |   .1056657   .0164625     6.42   0.000     .0733998    .1379316
+                                        WA  |   .0109026   .0076067     1.43   0.152    -.0040063    .0258114
+                                        WV  |  -.0593242   .0086082    -6.89   0.000    -.0761961   -.0424524
+                                        WI  |   .0135747    .008649     1.57   0.117    -.0033771    .0305264
+                                        WY  |  -.0557582   .0199053    -2.80   0.005    -.0947719   -.0167445
+                                            |
+                                       year |
+                                      2001  |   .0114522   .0611217     0.19   0.851    -.1083442    .1312486
+                                      2002  |   .1279156   .0883544     1.45   0.148    -.0452559    .3010871
+                                      2003  |   .1889087   .0573836     3.29   0.001     .0764389    .3013784
+                                      2004  |   .2490466   .0731296     3.41   0.001     .1057153    .3923778
+                                      2005  |   .1424555   .0507148     2.81   0.005     .0430564    .2418546
+                                      2006  |   .0293875   .0567506     0.52   0.605    -.0818416    .1406165
+                                      2007  |   .0270677   .0626963     0.43   0.666    -.0958147    .1499501
+                                      2008  |  -.0111292   .0979077    -0.11   0.909    -.2030248    .1807663
+                                      2009  |   .1807939   .0766786     2.36   0.018     .0305067    .3310812
+                                      2010  |   .3583113   .0992288     3.61   0.000     .1638264    .5527962
+                                      2011  |   .3957675   .0755773     5.24   0.000     .2476387    .5438963
+                                      2012  |   .3617953   .0824573     4.39   0.000      .200182    .5234087
+                                      2013  |   .3382432   .0826475     4.09   0.000     .1762571    .5002293
+                                      2014  |   .2738757    .087044     3.15   0.002     .1032726    .4444787
+                                      2015  |   .2687135   .1057647     2.54   0.011     .0614185    .4760086
+                                      2016  |   .2120185   .0762591     2.78   0.005     .0625533    .3614837
+                                      2017  |   .2223041   .0793308     2.80   0.005     .0668186    .3777895
+                                      2018  |    .170433    .088889     1.92   0.055    -.0037862    .3446522
+                                      2019  |   .1410802   .0817614     1.73   0.084    -.0191692    .3013297
+                                      2020  |   .1300845   .1086049     1.20   0.231    -.0827771    .3429461
+                                      2021  |   .1727136   .1191832     1.45   0.147    -.0608813    .4063084
+                                      2022  |   .0273816   .0844561     0.32   0.746    -.1381494    .1929125
+                                      2023  |  -.0180436   .0643418    -0.28   0.779    -.1441512     .108064
+                                            |
+                                      _cons |   -1.60648   .1200703   -13.38   0.000    -1.841813   -1.371147
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", append ctitle("Macro Controls")
+../Tables/educ_table_1.doc
+dir : seeout
+.         logit rigid inflation_college college inflation productivity_growth unemployment `individual_controls' i.stfips if 
+> year >= 2000, cluster(stfips)
+
+Iteration 0:   log pseudolikelihood = -89202.033  
+Iteration 1:   log pseudolikelihood = -87995.662  
+Iteration 2:   log pseudolikelihood = -87985.683  
+Iteration 3:   log pseudolikelihood = -87985.682  
+
+Logistic regression                                    Number of obs = 163,607
+                                                       Wald chi2(49) =       .
+                                                       Prob > chi2   =       .
+Log pseudolikelihood = -87985.682                      Pseudo R2     =  0.0136
+
+                                                               (Std. err. adjusted for 51 clusters in stfips)
+-------------------------------------------------------------------------------------------------------------
+                                            |               Robust
+                                      rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------------------+----------------------------------------------------------------
+                          inflation_college |  -.0108543   .0245799    -0.44   0.659      -.05903    .0373214
+                                    college |   -.089559   .0407965    -2.20   0.028    -.1695186   -.0095994
+                                  inflation |  -.0159072   .0244453    -0.65   0.515    -.0638191    .0320047
+                        productivity_growth |  -.0296622   .0043743    -6.78   0.000    -.0382356   -.0210888
+                               unemployment |   .0596391   .0047986    12.43   0.000      .050234    .0690441
+                                       educ |   .0278543   .0043259     6.44   0.000     .0193758    .0363328
+                                 experience |   .0047011   .0012394     3.79   0.000     .0022719    .0071304
+                                experience2 |    .000101   .0000236     4.27   0.000     .0000547    .0001473
+                                     female |   .0367641   .0142403     2.58   0.010     .0088536    .0646747
+                                      white |    .071167   .0176173     4.04   0.000     .0366378    .1056963
+                                    married |  -.0335708   .0114972    -2.92   0.004     -.056105   -.0110367
+                                      union |  -.2891393   .0249648   -11.58   0.000    -.3380694   -.2402093
+                                            |
+                                        ind |
+                                Mining/Oil  |  -.3409699    .110719    -3.08   0.002    -.5579752   -.1239647
+                              Construction  |  -.0399045   .1071369    -0.37   0.710    -.2498889      .17008
+                             Manufacturing  |  -.3651865   .1059721    -3.45   0.001    -.5728879   -.1574851
+                           Wholesale Trade  |  -.3326383   .1044478    -3.18   0.001    -.5373522   -.1279244
+                              Retail Trade  |  -.3705999    .100491    -3.69   0.000    -.5675586   -.1736411
+                Transportation/Warehousing  |  -.3259615   .0986786    -3.30   0.001    -.5193681    -.132555
+                                 Utilities  |  -.4852755   .1198072    -4.05   0.000    -.7200932   -.2504578
+                            Communications  |  -.3407662   .1035795    -3.29   0.001    -.5437783   -.1377541
+                         Finance/Insurance  |   -.520664   .1061567    -4.90   0.000    -.7287274   -.3126006
+                               Real Estate  |   -.117636   .1128694    -1.04   0.297     -.338856     .103584
+Professional/Scientific/Technical Services  |  -.0755041   .0999105    -0.76   0.450    -.2713251    .1203168
+                                Consulting  |  -.1281014    .350141    -0.37   0.714    -.8143651    .5581623
+  Business Administrative/Support Services  |  -.0044568    .101264    -0.04   0.965    -.2029306    .1940171
+                                 Education  |  -.3722769   .1009919    -3.69   0.000    -.5702174   -.1743363
+              Healthcare/Social Assistance  |   -.428058   .0958797    -4.46   0.000    -.6159788   -.2401372
+             Arts/Entertainment/Recreation  |  -.1308753   .0916308    -1.43   0.153    -.3104684    .0487178
+               Accommodation/Food Services  |  -.1388562    .090483    -1.53   0.125    -.3161995    .0384872
+                            Other Services  |   .0809144   .1014173     0.80   0.425    -.1178599    .2796886
+                     Public Administration  |   -.531371   .1015833    -5.23   0.000    -.7304706   -.3322715
+                                            |
+                                        occ |
+                      Financial Operations  |  -.0975386   .0518904    -1.88   0.060     -.199242    .0041647
+                  Computer/Math Operations  |   .0905728   .0767131     1.18   0.238    -.0597821    .2409278
+                  Architecture/Engineering  |  -.1160088    .066117    -1.75   0.079    -.2455957    .0135782
+             Life/Physical/Social Sciences  |  -.0768169   .0949983    -0.81   0.419      -.26301    .1093763
+                 Community/Social Services  |   .0993396   .0726508     1.37   0.172    -.0430533    .2417325
+                                     Legal  |   .0460554     .09597     0.48   0.631    -.1420424    .2341531
+                                 Education  |   .1242142   .0625397     1.99   0.047     .0016386    .2467898
+                  Arts/Entertainment/Media  |   .2378561   .0709884     3.35   0.001     .0987213    .3769908
+                   Healthcare Practitioner  |  -.1315539   .0418973    -3.14   0.002    -.2136712   -.0494366
+                        Healthcare Support  |   .0739927   .0501143     1.48   0.140    -.0242295    .1722148
+                       Protective Services  |  -.0257283   .0473695    -0.54   0.587    -.1185708    .0671143
+                             Food Services  |   .0165497   .0426134     0.39   0.698     -.066971    .1000704
+                                  Cleaning  |  -.0558364   .0438753    -1.27   0.203    -.1418304    .0301576
+                         Personal Services  |   .2558229    .067667     3.78   0.000     .1231979    .3884478
+                                     Sales  |   -.082422    .046293    -1.78   0.075    -.1731547    .0083107
+                    Administrative Support  |  -.0430266    .036401    -1.18   0.237    -.1143713    .0283181
+                  Farming/Fishing/Forestry  |   .1147395   .0933038     1.23   0.219    -.0681326    .2976116
+                              Construction  |  -.0464443   .0560347    -0.83   0.407    -.1562703    .0633817
+                  Installation/Maintenance  |  -.0687249   .0418182    -1.64   0.100    -.1506869    .0132372
+                                Production  |  -.0664002   .0483834    -1.37   0.170      -.16123    .0284295
+                            Transportation  |  -.0352976   .0468711    -0.75   0.451    -.1271634    .0565681
+                           Material Moving  |  -.0613559   .0444549    -1.38   0.168     -.148486    .0257742
+                                            |
+                                     stfips |
+                                        AK  |  -.0239183   .0084722    -2.82   0.005    -.0405235   -.0073132
+                                        AZ  |  -.0801228    .006181   -12.96   0.000    -.0922373   -.0680083
+                                        AR  |    .006873   .0036675     1.87   0.061    -.0003151     .014061
+                                        CA  |  -.0650725   .0123724    -5.26   0.000    -.0893219   -.0408231
+                                        CO  |  -.0321298   .0053875    -5.96   0.000    -.0426892   -.0215704
+                                        CT  |   .0025174   .0054516     0.46   0.644    -.0081677    .0132024
+                                        DE  |   .0364456   .0062788     5.80   0.000     .0241394    .0487518
+                                        DC  |  -.0065818   .0150643    -0.44   0.662    -.0361073    .0229437
+                                        FL  |   .1729402   .0062009    27.89   0.000     .1607866    .1850938
+                                        GA  |   .0670407    .004263    15.73   0.000     .0586853    .0753961
+                                        HI  |   .1397847    .017044     8.20   0.000     .1063791    .1731903
+                                        ID  |   .0063721   .0080184     0.79   0.427    -.0093437     .022088
+                                        IL  |  -.0068595   .0043291    -1.58   0.113    -.0153443    .0016253
+                                        IN  |    .039427   .0041535     9.49   0.000     .0312863    .0475676
+                                        IA  |  -.0343446   .0095462    -3.60   0.000    -.0530548   -.0156344
+                                        KS  |  -.0151503   .0068122    -2.22   0.026     -.028502   -.0017986
+                                        KY  |  -.0931231   .0053319   -17.47   0.000    -.1035736   -.0826727
+                                        LA  |   .0841615   .0055619    15.13   0.000     .0732604    .0950626
+                                        ME  |   .0047859   .0069874     0.68   0.493    -.0089092     .018481
+                                        MD  |  -.0682214   .0067145   -10.16   0.000    -.0813816   -.0550612
+                                        MA  |   .0857468   .0068857    12.45   0.000     .0722511    .0992425
+                                        MI  |  -.0105412   .0081828    -1.29   0.198    -.0265792    .0054968
+                                        MN  |  -.0524327   .0077503    -6.77   0.000    -.0676231   -.0372423
+                                        MS  |   .0765028   .0054188    14.12   0.000     .0658822    .0871234
+                                        MO  |  -.0677526   .0051006   -13.28   0.000    -.0777496   -.0577556
+                                        MT  |  -.0907757   .0114843    -7.90   0.000    -.1132846   -.0682668
+                                        NE  |   .0091873   .0131349     0.70   0.484    -.0165566    .0349312
+                                        NV  |  -.2096108   .0159053   -13.18   0.000    -.2407846    -.178437
+                                        NH  |   .0536427   .0106876     5.02   0.000     .0326954      .07459
+                                        NJ  |   .1482729   .0071535    20.73   0.000     .1342523    .1622935
+                                        NM  |   .0418855   .0066112     6.34   0.000     .0289278    .0548431
+                                        NY  |   .0654815   .0069784     9.38   0.000     .0518041     .079159
+                                        NC  |   .0066007    .004369     1.51   0.131    -.0019624    .0151639
+                                        ND  |  -.0305205    .016251    -1.88   0.060     -.062372    .0013309
+                                        OH  |  -.0526203   .0050149   -10.49   0.000    -.0624493   -.0427912
+                                        OK  |   .2366837   .0080376    29.45   0.000     .2209302    .2524371
+                                        OR  |  -.1785402   .0076328   -23.39   0.000    -.1935003   -.1635802
+                                        PA  |  -.0123129   .0057644    -2.14   0.033     -.023611   -.0010149
+                                        RI  |   -.033873   .0082105    -4.13   0.000    -.0499653   -.0177807
+                                        SC  |  -.1657988   .0061267   -27.06   0.000    -.1778069   -.1537907
+                                        SD  |   .0361377   .0139144     2.60   0.009      .008866    .0634094
+                                        TN  |  -.0652721   .0034067   -19.16   0.000    -.0719492    -.058595
+                                        TX  |   .1097939   .0058099    18.90   0.000     .0984066    .1211812
+                                        UT  |   .0899387   .0107879     8.34   0.000     .0687948    .1110826
+                                        VT  |  -.0308142   .0117663    -2.62   0.009    -.0538757   -.0077527
+                                        VA  |   .1655161    .007536    21.96   0.000     .1507459    .1802864
+                                        WA  |  -.0000426   .0080581    -0.01   0.996    -.0158362     .015751
+                                        WV  |  -.0688308   .0078496    -8.77   0.000    -.0842157   -.0534459
+                                        WI  |   .0428068    .005082     8.42   0.000     .0328463    .0527674
+                                        WY  |   .0096617   .0132866     0.73   0.467    -.0163796    .0357029
+                                            |
+                                      _cons |  -1.654416   .1139199   -14.52   0.000    -1.877695   -1.431137
+-------------------------------------------------------------------------------------------------------------
+.         outreg2 using "../Tables/educ_table_1.doc", append ctitle("No Year FE")
+../Tables/educ_table_1.doc
+dir : seeout
+.         
+.         
+. }
+
+. 
+. // bring back baseline analysis as it shows that in general, for everyone, there is less DNWR (and then we show it's not tr
+> ue for vulnerable sectors of population)
+. 
+. if $union_analysis == 1 {
+.         
+.         preserve 
+.         
+.         // Assign a RTW dummy
+.         gen rtw = 0
+.         replace rtw = 1 if stfips == 1
+.         replace rtw = 1 if stfips == 4
+.         replace rtw = 1 if stfips == 5
+.         replace rtw = 1 if stfips == 12
+.         replace rtw = 1 if stfips == 13
+.         replace rtw = 1 if stfips == 16
+.         replace rtw = 1 if (stfips == 18 & year > 2012)
+.         replace rtw = 1 if stfips == 19
+.         replace rtw = 1 if stfips == 20
+.         replace rtw = 1 if (stfips == 21 & year > 2017)
+.         replace rtw = 1 if stfips == 22
+.         replace rtw = 1 if (stfips == 26 & year > 2012)
+.         replace rtw = 1 if stfips == 28
+.         replace rtw = 1 if (stfips == 29 & year == 2018)
+.         replace rtw = 1 if stfips == 31
+.         replace rtw = 1 if stfips == 32
+.         replace rtw = 1 if stfips == 37
+.         replace rtw = 1 if stfips == 38
+.         replace rtw = 1 if (stfips == 40 & year > 2001)
+.         replace rtw = 1 if stfips == 45
+.         replace rtw = 1 if stfips == 46
+.         replace rtw = 1 if stfips == 47
+.         replace rtw = 1 if (stfips == 48 & year > 1993)
+.         replace rtw = 1 if stfips == 49
+.         replace rtw = 1 if stfips == 51
+.         replace rtw = 1 if (stfips == 55 & year > 2015)
+.         replace rtw = 1 if stfips == 56
+.         
+.         gen inflation_rtw = inflation * rtw
+.         
+.         logit rigid inflation_rtw rtw `individual_controls' i.stfips i.year if year >= 1983, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_1.doc", replace ctitle("No Macro Controls")
+.         logit rigid inflation_rtw rtw unemployment `individual_controls' i.stfips i.year if year >= 1983, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_1.doc", append ctitle("Macro Controls")
+.         logit rigid inflation_rtw rtw inflation productivity_growth unemployment `individual_controls' i.stfips if year >= 
+> 1983, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_1.doc", append ctitle("No Year FE")
+.         
+.         // Balance tables
+.         local balance_test_controls unemployment educ experience female white married union
+.         foreach var in `balance_test_controls' {
+  2.                 
+.                 if "`var'" == "unemployment" | "`var'" == "educ" | "`var'" == "experience" {
+  3.                         
+.                         areg `var' rtw i.stfips, absorb(year) cluster(stfips)
+  4.                         
+.                 }
+  5.                 else {
+  6.                         
+.                         logit `var' rtw i.year i.stfips, cluster(stfips)
+  7.                         
+.                 }
+  8.                 
+.                 if "`var'" == "unemployment" {
+  9.                         
+.                         outreg2 using "../Tables/balance_test_rtw.doc", replace ctitle("`var'")
+ 10.                         
+.                 }
+ 11.                 else {
+ 12.                         
+.                         outreg2 using "../Tables/balance_test_rtw.doc", append ctitle("`var'")
+ 13.                         
+.                 }
+ 14.         } 
+.         
+.         
+.         // Put industry and occupation balance tests in appendix for space reasons
+.         /*
+>         local ind_occ i.ind i.occ
+>         local counter = 1
+>         foreach var in `ind_occ' {
+>                 
+>                 
+>                 logit `var' rtw i.year i.stfips, cluster(stfips)
+>                         
+>                 if `counter' == 1 {
+>                         
+>                         outreg2 using "../Tables/balance_test_rtw_appendix.doc", replace ctitle("`var'")
+>                         
+>                 }
+>                 else {
+>                         
+>                         outreg2 using "../Tables/balance_test_rtw_appendix.doc", append ctitle("`var'")
+>                         
+>                 }
+>                 
+>                 local counter = `counter' + 1
+>                 
+>         }
+>         */
+. 
+.         // Regressions that demonstrates that RTW laws decreased the number of people who are in a union and covered by a u
+> nion contract
+.         local temp_individual_controls educ experience experience2 female white married i.ind i.occ
+.         
+.         replace unionmme = (unionmme == 1)
+.         logit unionmme rtw `temp_individual_controls' unemployment i.stfips i.year, cluster(stfips)
+.         outreg2 using "../Tables/rtw_actually_doing_something.doc", replace ctitle("Union Membership")
+.         logit union rtw `temp_individual_controls' unemployment i.stfips i.year, cluster(stfips)
+.         outreg2 using "../Tables/rtw_actually_doing_something.doc", append ctitle("Union Contract Coverage")
+.         
+.         
+.         logit rigid inflation_rtw rtw `individual_controls' i.stfips i.year, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_1.doc", replace ctitle("No Macro Controls")
+.         logit rigid inflation_rtw rtw unemployment `individual_controls' i.stfips i.year, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_1.doc", append ctitle("Macro Controls")
+.         logit rigid inflation_rtw rtw inflation productivity_growth unemployment `individual_controls' i.stfips, cluster(st
+> fips)
+.         outreg2 using "../Tables/rtw_table_1.doc", append ctitle("No Year FE")
+.         
+.         logit rigid inflation_rtw rtw `individual_controls' i.stfips i.year if union == 0, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", replace ctitle("Not Covered By Union Contract")
+.         logit rigid inflation_rtw rtw unemployment `individual_controls' i.stfips i.year if union == 0, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", append ctitle("Not Covered By Union Contract")
+.         logit rigid inflation_rtw rtw inflation productivity_growth unemployment `individual_controls' i.stfips if union ==
+>  0, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", append ctitle("Not Covered By Union Contract")
+.         
+.         logit rigid inflation_rtw rtw `individual_controls' i.stfips i.year if union == 1, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", append ctitle("Covered By Union Contract")
+.         logit rigid inflation_rtw rtw unemployment `individual_controls' i.stfips i.year if union == 1, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", append ctitle("Covered By Union Contract")
+.         logit rigid inflation_rtw rtw inflation productivity_growth unemployment `individual_controls' i.stfips if union ==
+>  1, cluster(stfips)
+.         outreg2 using "../Tables/rtw_table_2.doc", append ctitle("Covered By Union Contract")
+.         
+.         
+.         
+.         // Propensity Score Matching
+.         local psm_controls educ experience female white married i.ind i.occ
+. 
+.         gen inflation_union = inflation * union
+.         
+.         logit union `psm_controls' `macro_controls' i.stfips i.year
+.         predict phat
+. 
+.         gen wt = 1 if union == 1
+.         replace wt = phat/(1-phat) if union == 0
+. 
+.         gen wt_un = 1 if union == 0
+.         replace wt_un = (1-phat)/phat if union == 1
+. 
+.         gen wt_avg = 1/(1-phat) if union == 0
+.         replace wt_avg = 1/phat if union == 1
+. 
+.         // Graph the propensity scores
+.         histogram phat, by(union) kdensity
+.         graph export "../Plots/propensity_score_histogram.png", replace
+. 
+.         kdensity phat if union==1, gen(x_1 d_1)
+.         label var d_1 "union group"
+.         kdensity phat if union == 0, gen(x_0 d_0)
+.         label var d_0 "control group, unweighted"
+.         kdensity phat if union == 0 [aw=wt], gen(x_0w d_0w)
+.         label var d_0w "control group, weighted"
+.         twoway (line d_1 x_1, sort) (line d_0 x_0, sort) (line d_0w x_0w, sort)
+.         graph export "../Plots/PSM_kernel_density_plot.png", replace
+. 
+.         // Look at the distribution of weights -- sometimes end up putting tons of weight on a few observations 
+.         summ wt if union == 0, d
+.         summ wt_un if union == 1, d
+.         summ wt_avg, d
+. 
+.         // Run regressions with & without controls, with & without weighting
+.         
+.         // ATE on Treated
+.         logit rigid inflation_union inflation union i.year, cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_1.doc", replace ctitle("No Controls/No Weighting")
+.         logit rigid inflation_union inflation union i.year [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_1.doc", append ctitle("No Controls/Weighting")
+.         logit rigid inflation_union inflation unemployment `individual_controls' i.stfips i.year, cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_1.doc", append ctitle("Controls/No Weighting")
+.         logit rigid inflation_union inflation productivity_growth unemployment `individual_controls' i.stfips i.year [pw=wt
+> ], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_1.doc", append ctitle("Controls/Weighting")
+. 
+.         // ATE on Untreated
+.         logit rigid inflation_union inflation union i.year [pw=wt_un], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_2.doc", replace ctitle("No controls")
+.         logit rigid inflation_union inflation unemployment `individual_controls' i.stfips i.year [pw=wt_un], cluster(stfips
+> )
+.         outreg2 using "../Tables/psm_union_table_2.doc", append ctitle("Controls")
+. 
+.         // ATE on Average
+.         logit rigid inflation_union inflation union i.year [pw=wt_avg], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_3.doc", replace ctitle("No controls")
+.         logit rigid inflation_union inflation unemployment `individual_controls' i.stfips i.year [pw=wt_avg], cluster(stfip
+> s)
+.         outreg2 using "../Tables/psm_union_table_3.doc", append ctitle("Controls")
+. 
+.         // Run regressions breaking sample into quintiles of propensity
+.         logit rigid inflation_union inflation union i.year if phat>=0 & phat<0.2 [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_4.doc", replace ctitle("First quintile")
+.         logit rigid inflation_union inflation union i.year if phat>=0.2 & phat<0.4 [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_4.doc", append ctitle("Second quintile")
+.         logit rigid inflation_union inflation union i.year if phat>=0.4 & phat<0.6 [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_4.doc", append ctitle("Third quintile")
+.         logit rigid inflation_union inflation union i.year if phat>=0.6 & phat<0.8 [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_4.doc", append ctitle("Fourth quintile")
+.         logit rigid inflation_union inflation union i.year if phat>=0.8 & phat<1 [pw=wt], cluster(stfips)
+.         outreg2 using "../Tables/psm_union_table_4.doc", append ctitle("Fifth quintile")
+. 
+.         // include interaction with propensity in full sample
+.         gen inflation_union_phat = inflation_union*phat
+.         logit rigid inflation_union_phat inflation_union phat [pw=wt], cluster(stfips)
+.         
+.         gen wage_decrease = (log_wage_change < 0)
+.         
+.         // Drop anyone who has always had a RTW law
+.         drop if stfips == 1
+.         drop if stfips == 4
+.         drop if stfips == 5
+.         drop if stfips == 12
+.         drop if stfips == 13
+.         drop if stfips == 16
+.         drop if stfips == 19
+.         drop if stfips == 20
+.         drop if stfips == 22
+.         drop if stfips == 28
+.         drop if stfips == 31
+.         drop if stfips == 32
+.         drop if stfips == 37
+.         drop if stfips == 38
+.         drop if stfips == 45
+.         drop if stfips == 46
+.         drop if stfips == 47
+.         drop if stfips == 49
+.         drop if stfips == 51
+.         drop if stfips == 56
+.         
+.         gen event_time = .
+.         replace event_time = year - 2013 if stfips == 18
+.         replace event_time = year - 2017 if stfips == 21
+.         replace event_time = year - 2013 if stfips == 26
+.         replace event_time = year - 2019 if stfips == 29
+.         replace event_time = year - 2002 if stfips == 40
+.         replace event_time = year - 1994 if stfips == 48
+.         replace event_time = year - 2016 if stfips == 55
+.         
+.         eventdd wage_decrease rtw unemployment `individual_controls' i.stfips i.year, timevar(event_time) method(ols, clust
+> er(stfips)) graph_op(ytitle("rtw and wage_decrease") xlabel(-5(1)10)) leads(5) lags(10) accum
+.         graph export "../Plots/event_study_rtw_decrease.png", replace
+.         
+.         eventdd rigid rtw unemployment `individual_controls' i.stfips i.year, timevar(event_time) method(ols, cluster(stfip
+> s)) graph_op(ytitle("rtw and rigid") xlabel(-5(1)10)) leads(5) lags(10) accum
+.         graph export "../Plots/event_study_rtw_rigid.png", replace
+.         
+.         restore
+.         
+. 
+. }
+
+. 
+. if $globalization_analysis == 1 {
+.         
+.         drop if year >= 2006
+.         gen post = (year >= 1994)
+.         gen treat = (ind == 1 | ind == 2 | ind == 4) // Treated population is anyone in agriculture, raw materials, and man
+> ufacturing
+.         // gen treat = (occ == 18 | occ == 21)
+.         gen post_treat = post * treat
+.         gen inflation_post_treat = inflation * post_treat
+.         gen inflation_post = inflation * post
+.         gen inflation_treat = inflation * treat
+.         
+.         preserve
+.         
+.         /*
+>         
+>         // Balance test 
+>         local balance_test_controls unemployment educ experience female white married union
+>         foreach var in `balance_test_controls' {
+>                 
+>                 if "`var'" == "unemployment" | "`var'" == "educ" | "`var'" == "experience" {
+>                         
+>                         areg `var' post_treat i.ind /* i.stfips */, absorb(year) cluster(stfips)
+>                         
+>                 }
+>                 else {
+>                         
+>                         logit `var' post_treat i.ind i.year /* i.stfips */, cluster(stfips)
+>                         
+>                 }
+>                 
+>                 if "`var'" == "unemployment" {
+>                         
+>                         outreg2 using "../Tables/balance_test_nafta.doc", replace ctitle("`var'")
+>                         
+>                 }
+>                 else {
+>                         
+>                         outreg2 using "../Tables/balance_test_nafta.doc", append ctitle("`var'")
+>                         
+>                 }
+>         } 
+> 
+>          
+>         local individual_controls2 educ experience experience2 female white married union i.ind i.occ
+>         
+>         // Regressions (adding post and treat improves convergence; can't cluster on ind because < 30)
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat `individual_controls' i.stfip
+> s i.year, cluster(stfips)
+>         outreg2 using "../Tables/nafta_table_1.doc", replace ctitle("No Macro Controls")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat unemployment `individual_cont
+> rols' i.stfips i.year, cluster(stfips)
+>         outreg2 using "../Tables/nafta_table_1.doc", append ctitle("No Year FE")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat inflation productivity_growth
+>  unemployment `individual_controls' i.stfips, cluster(stfips)
+>         outreg2 using "../Tables/nafta_table_1.doc", append ctitle("No Year FE")
+>         
+>         // PSM
+>         
+>         */
+.         
+.         local psm_controls educ experience female white married i.occ
+.         
+.         logit treat `psm_controls' `macro_controls' i.stfips i.year
+.         predict phat
+. 
+.         gen wt = 1 if treat == 1
+.         replace wt = phat/(1-phat) if treat == 0
+. 
+.         gen wt_un = 1 if treat == 0
+.         replace wt_un = (1-phat)/phat if treat == 1
+. 
+.         gen wt_avg = 1/(1-phat) if treat == 0
+.         replace wt_avg = 1/phat if treat == 1
+. 
+.         // Graph the propensity scores
+.         histogram phat, by(treat) kdensity
+.         graph export "../Plots/nafta_propensity_score_histogram.png", replace
+. 
+.         kdensity phat if treat==1, gen(x_1 d_1)
+.         label var d_1 "treat group"
+.         kdensity phat if treat == 0, gen(x_0 d_0)
+.         label var d_0 "control group, unweighted"
+.         kdensity phat if treat == 0 [aw=wt], gen(x_0w d_0w)
+.         label var d_0w "control group, weighted"
+.         twoway (line d_1 x_1, sort) (line d_0 x_0, sort) (line d_0w x_0w, sort)
+.         graph export "../Plots/nafta_PSM_kernel_density_plot.png", replace
+. 
+.         // Look at the distribution of weights -- sometimes end up putting tons of weight on a few observations 
+.         summ wt if treat == 0, d
+.         summ wt_un if treat == 1, d
+.         summ wt_avg, d
+. 
+.         // Run regressions with & without controls, with & without weighting
+.         
+.         foreach var in `balance_test_controls' {
+  2.                 
+.                 if "`var'" == "unemployment" | "`var'" == "educ" | "`var'" == "experience" {
+  3.                         
+.                         areg `var' post_treat post treat i.stfips [pw=wt], absorb(year) cluster(stfips)
+  4.                         
+.                 }
+  5.                 else {
+  6.                         
+.                         logit `var' post_treat post treat i.year i.stfips [pw=wt], cluster(stfips)
+  7.                         
+.                 }
+  8.                 
+.                 if "`var'" == "unemployment" {
+  9.                         
+.                         outreg2 using "../Tables/balance_test_nafta_2.doc", replace ctitle("`var'")
+ 10.                         
+.                 }
+ 11.                 else {
+ 12.                         
+.                         outreg2 using "../Tables/balance_test_nafta_2.doc", append ctitle("`var'")
+ 13.                         
+.                 }
+ 14.         }
+.         
+.         // Balance tests
+.         outsum unemployment educ experience female white married union using "../Tables/balance_nafta_psm.doc" if post == 0
+>  & treat == 1, replace ctitle("Treatment")
+.         
+.         outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables
+> /balance_nafta_psm.doc" if post == 0 & treat == 0, append ctitle("Control")
+.         
+.         outsum rigid inflation productivity_growth unemployment educ experience female white married union using "../Tables
+> /balance_nafta_psm.doc" if post == 0 & treat == 0 [wt=wt], append ctitle("Weighted Control")
+.         
+.         /*
+>         
+>         // ATE on Treated
+>         logit rigid inflation_post_treat inflation_post inflation_treat post_treat post treat i.year, cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_1.doc", replace ctitle("No Controls/No Weighting")
+>         logit rigid inflation_post_treat inflation_post inflation_treat post_treat post treat i.year [pw=wt], cluster(stfip
+> s)
+>         outreg2 using "../Tables/psm_nafta_table_1.doc", append ctitle("No Controls/Weighting")
+>         logit rigid inflation_post_treat inflation_post inflation_treat post_treat post treat unemployment `individual_cont
+> rols' i.stfips i.year, cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_1.doc", append ctitle("Controls/No Weighting")
+>         logit rigid inflation_post_treat inflation_post inflation_treat post_treat post treat unemployment `individual_cont
+> rols' i.stfips i.year [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_1.doc", append ctitle("Controls/Weighting")
+> 
+>         // ATE on Untreated
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year [pw=wt_un], cluster(st
+> fips)
+>         outreg2 using "../Tables/psm_nafta_table_2.doc", replace ctitle("No controls")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat unemployment `individual_cont
+> rols' i.stfips i.year [pw=wt_un], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_2.doc", append ctitle("Controls")
+> 
+>         // ATE on Average
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year [pw=wt_avg], cluster(s
+> tfips)
+>         outreg2 using "../Tables/psm_nafta_table_2.doc", append ctitle("No controls")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat unemployment `individual_cont
+> rols' i.stfips i.year [pw=wt_avg], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_2.doc", append ctitle("Controls")
+> 
+>         // Run regressions breaking sample into quintiles of propensity
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year if phat>=0 & phat<0.2 
+> [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_3.doc", replace ctitle("First quintile")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year if phat>=0.2 & phat<0.
+> 4 [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_3.doc", append ctitle("Second quintile")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year if phat>=0.4 & phat<0.
+> 6 [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_3.doc", append ctitle("Third quintile")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year if phat>=0.6 & phat<0.
+> 8 [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_3.doc", append ctitle("Fourth quintile")
+>         logit rigid inflation_post_treat post_treat inflation_post inflation_treat post treat i.year if phat>=0.8 & phat<1 
+> [pw=wt], cluster(stfips)
+>         outreg2 using "../Tables/psm_nafta_table_3.doc", append ctitle("Fifth quintile")
+>         
+> 
+>         // Event study
+>         gen event_time = .
+>         replace event_time = year - 1994 if treat == 1
+>         
+>         gen wage_decrease = (log_wage_change < 0)
+>         
+>         eventdd wage_decrease unemployment `individual_controls' i.stfips i.year, timevar(event_time) method(ols, cluster(s
+> tfips)) graph_op(ytitle("nafta and wage_decrease") xlabel(-5(1)11)) leads(5) lags(11) accum
+>         graph export "../Plots/event_study_nafta_decrease.png", replace
+>         
+>         eventdd rigid unemployment `individual_controls' i.stfips i.year, timevar(event_time) method(ols, cluster(stfips)) 
+> graph_op(ytitle("nafta and wage_freeze") xlabel(-5(1)11)) leads(5) lags(11) accum
+>         
+>         graph export "../Plots/event_study_nafta_rigid.png", replace
+> 
+>         // DiD plots
+>         
+>         /*
+>         collapse (mean) rigid [pw=wt], by(year treat post)
+>         
+>         twoway (line rigid year if treat == 1, lcolor(blue) lwidth(medium) lpattern(dash)) ///
+>                         (line rigid year if treat == 0, lcolor(orange) lwidth(medium) lpattern(solid)) ///
+>                         , title("Wage Freezes by Treatment Group") ///
+>                         legend(label(1 "Treated") label(2 "Control")) ///
+>                         ytitle("Proportion of Observations with Wage Freezes") xtitle("Year") ///
+>                         ylabel(, grid) ///
+>                         xline(1994, lcolor(black) lwidth(medium) lpattern(dash))
+>         graph export "../Plots/DiD_nafta_plot_3.png", replace
+>                         
+>         twoway (lowess rigid year if treat == 1, lcolor(blue) lwidth(medium) lpattern(dash)) ///
+>                         (lowess rigid year if treat == 0, lcolor(orange) lwidth(medium) lpattern(solid)) ///
+>                         , title("Wage Freezes by Treatment Group") ///
+>                         legend(label(1 "Treated") label(2 "Control")) ///
+>                         ytitle("Proportion of Observations with Wage Freezes") xtitle("Year") ///
+>                         ylabel(, grid) ///
+>                         xline(1994, lcolor(black) lwidth(medium) lpattern(dash))
+>         graph export "../Plots/DiD_nafta_plot_4.png", replace
+>         
+>         restore
+>         preserve
+>         
+>         */
+>         
+>         collapse (mean) rigid, by(year treat post)
+>         
+>         twoway (line rigid year if treat == 1, lcolor(blue) lwidth(medium) lpattern(dash)) ///
+>                         (line rigid year if treat == 0, lcolor(orange) lwidth(medium) lpattern(solid)) ///
+>                         , title("Wage Freezes by Treatment Group") ///
+>                         legend(label(1 "Treated") label(2 "Control")) ///
+>                         ytitle("Proportion of Observations with Wage Freezes") xtitle("Year") ///
+>                         ylabel(, grid) ///
+>                         xline(1994, lcolor(black) lwidth(medium) lpattern(dash))
+>         graph export "../Plots/DiD_nafta_plot_1.png", replace
+>         
+>         twoway (lowess rigid year if treat == 1, lcolor(blue) lwidth(medium) lpattern(dash)) ///
+>                         (lowess rigid year if treat == 0, lcolor(orange) lwidth(medium) lpattern(solid)) ///
+>                         , title("Wage Freezes by Treatment Group") ///
+>                         legend(label(1 "Treated") label(2 "Control")) ///
+>                         ytitle("Proportion of Observations with Wage Freezes") xtitle("Year") ///
+>                         ylabel(, grid) ///
+>                         xline(1994, lcolor(black) lwidth(medium) lpattern(dash))
+>         graph export "../Plots/DiD_nafta_plot_2.png", replace
+>                         
+>         restore
+>         */
+.         
+. }
 
 . 
 . 
-. 
-. // Define wages being rigid
-. gen rigid = (abs(log_wage_change) <= 0.01)
-
-. 
-. 
-. // Establish the baseline regression first 
-. logit rigid inflation union `controls' i.stfips i.year, robust                  // remove inflation? (why no c
-> ollinear)
-
-note: union omitted because of collinearity.
-note: 2023.year omitted because of collinearity.
-Iteration 0:   log pseudolikelihood = -39902.637  
-Iteration 1:   log pseudolikelihood = -39374.611  
-Iteration 2:   log pseudolikelihood = -39369.585  
-Iteration 3:   log pseudolikelihood = -39369.585  
-
-Logistic regression                                    Number of obs =  80,277
-                                                       Wald chi2(66) = 1055.01
-                                                       Prob > chi2   =  0.0000
-Log pseudolikelihood = -39369.585                      Pseudo R2     =  0.0134
-
-----------------------------------------------------------------------------------
-                 |               Robust
-           rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
------------------+----------------------------------------------------------------
-       inflation |  -.2011798   .0258492    -7.78   0.000    -.2518432   -.1505164
-           union |  -.1322396   .0292284    -4.52   0.000    -.1895261    -.074953
-            male |   .0551185   .0186259     2.96   0.003     .0186124    .0916246
-           white |   .1265649   .0242469     5.22   0.000     .0790419     .174088
-             age |   .0107208   .0006214    17.25   0.000     .0095029    .0119387
-           union |          0  (omitted)
-  private_sector |   .1486976   .0286474     5.19   0.000     .0925498    .2048454
-        fulltime |  -.3584935   .0202535   -17.70   0.000    -.3981897   -.3187973
-supporting_child |   .0203345   .0202865     1.00   0.316    -.0194264    .0600953
-       immigrant |  -.1140955   .0302795    -3.77   0.000    -.1734423   -.0547487
-        tradable |  -.1053156   .0304562    -3.46   0.001    -.1650087   -.0456225
-  gvc_integrated |  -.1010198   .0485525    -2.08   0.037    -.1961811   -.0058586
-                 |
-          stfips |
-             AK  |   .1835953     .10588     1.73   0.083    -.0239257    .3911163
-             AZ  |  -.1357147   .1007762    -1.35   0.178    -.3332326    .0618031
-             AR  |  -.0839573   .1105139    -0.76   0.447    -.3005606    .1326459
-             CA  |   -.138827    .080162    -1.73   0.083    -.2959416    .0182877
-             CO  |  -.1351102   .1178624    -1.15   0.252    -.3661162    .0958958
-             CT  |   .1097924   .1113448     0.99   0.324    -.1084394    .3280242
-             DE  |  -.0414293   .1121677    -0.37   0.712    -.2612741    .1784154
-             DC  |   .2759758   .1349222     2.05   0.041     .0115332    .5404184
-             FL  |   .0004942   .0902814     0.01   0.996     -.176454    .1774424
-             GA  |  -.0023062   .1024944    -0.02   0.982    -.2031915     .198579
-             HI  |  -.0126747    .110427    -0.11   0.909    -.2291076    .2037582
-             ID  |  -.1223519   .0951344    -1.29   0.198    -.3088119     .064108
-             IL  |   .0459724   .0888561     0.52   0.605    -.1281823    .2201271
-             IN  |  -.2537584   .1018701    -2.49   0.013    -.4534201   -.0540967
-             IA  |  -.1461499   .1028313    -1.42   0.155    -.3476955    .0553956
-             KS  |  -.1025239   .1022402    -1.00   0.316     -.302911    .0978633
-             KY  |   .1087868   .1047708     1.04   0.299    -.0965603    .3141339
-             LA  |   .1696247   .1007187     1.68   0.092    -.0277803    .3670297
-             ME  |  -.3116074   .1140505    -2.73   0.006    -.5351423   -.0880726
-             MD  |  -.1291507   .1164395    -1.11   0.267    -.3573679    .0990664
-             MA  |  -.1105075   .1011939    -1.09   0.275    -.3088439     .087829
-             MI  |  -.1018017   .0915661    -1.11   0.266    -.2812679    .0776645
-             MN  |  -.1886216   .0976334    -1.93   0.053    -.3799796    .0027363
-             MS  |  -.0418789   .1012232    -0.41   0.679    -.2402728     .156515
-             MO  |  -.2213049   .1003801    -2.20   0.027    -.4180462   -.0245636
-             MT  |   -.150177   .0925933    -1.62   0.105    -.3316565    .0313024
-             NE  |  -.0677822   .0972951    -0.70   0.486     -.258477    .1229126
-             NV  |  -.0966547   .1041358    -0.93   0.353    -.3007572    .1074478
-             NH  |  -.0897981   .0972892    -0.92   0.356    -.2804815    .1008852
-             NJ  |   .0457088   .1059781     0.43   0.666    -.1620045    .2534221
-             NM  |   .0143169   .1024812     0.14   0.889    -.1865426    .2151765
-             NY  |  -.1690362   .0921292    -1.83   0.067    -.3496061    .0115337
-             NC  |   .0850187   .0968425     0.88   0.380    -.1047892    .2748265
-             ND  |  -.1625539   .0972563    -1.67   0.095    -.3531728    .0280651
-             OH  |  -.0127194   .0862024    -0.15   0.883    -.1816731    .1562342
-             OK  |    .294251   .1035184     2.84   0.004     .0913588    .4971433
-             OR  |  -.1516356   .0982191    -1.54   0.123    -.3441416    .0408703
-             PA  |  -.0450041   .0870648    -0.52   0.605     -.215648    .1256398
-             RI  |   .0773997   .1118041     0.69   0.489    -.1417324    .2965318
-             SC  |   .1095749    .109822     1.00   0.318    -.1056724    .3248221
-             SD  |  -.1477632   .0995211    -1.48   0.138    -.3428209    .0472946
-             TN  |  -.0415549   .0986583    -0.42   0.674    -.2349216    .1518118
-             TX  |   .1321232   .0823489     1.60   0.109    -.0292778    .2935241
-             UT  |  -.0934296   .0969316    -0.96   0.335     -.283412    .0965528
-             VT  |  -.0474709    .104768    -0.45   0.650    -.2528125    .1578706
-             VA  |   .0489497   .1032584     0.47   0.635    -.1534331    .2513324
-             WA  |  -.0292904   .0936979    -0.31   0.755    -.2129349    .1543542
-             WV  |  -.0900476    .098322    -0.92   0.360    -.2827551      .10266
-             WI  |   .0070316   .0914064     0.08   0.939    -.1721217    .1861849
-             WY  |   .0094098    .099204     0.09   0.924    -.1850265     .203846
-                 |
-            year |
-           2018  |  -.1008674   .0327272    -3.08   0.002    -.1650115   -.0367233
-           2019  |  -.0917269   .0285681    -3.21   0.001    -.1477192   -.0357345
-           2020  |  -.2138726   .0422938    -5.06   0.000    -.2967669   -.1309783
-           2021  |   .8650658   .1176566     7.35   0.000      .634463    1.095669
-           2022  |   .5765978   .1057147     5.45   0.000     .3694008    .7837948
-           2023  |          0  (omitted)
-                 |
-           _cons |  -1.135888   .1131884   -10.04   0.000    -1.357733   -.9140426
-----------------------------------------------------------------------------------
-
-. 
-. gen inflation_GVC = inflation * gvc_integrated
-
-. logit rigid inflation_GVC inflation union `controls' i.stfips i.year, robust
-
-note: union omitted because of collinearity.
-note: 2023.year omitted because of collinearity.
-Iteration 0:   log pseudolikelihood = -39902.637  
-Iteration 1:   log pseudolikelihood = -39374.617  
-Iteration 2:   log pseudolikelihood = -39369.574  
-Iteration 3:   log pseudolikelihood = -39369.573  
-
-Logistic regression                                    Number of obs =  80,277
-                                                       Wald chi2(67) = 1054.96
-                                                       Prob > chi2   =  0.0000
-Log pseudolikelihood = -39369.573                      Pseudo R2     =  0.0134
-
-----------------------------------------------------------------------------------
-                 |               Robust
-           rigid | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
------------------+----------------------------------------------------------------
-   inflation_GVC |  -.0031711    .020778    -0.15   0.879    -.0438953     .037553
-       inflation |  -.2010001   .0258742    -7.77   0.000    -.2517127   -.1502875
-           union |  -.1322565   .0292274    -4.53   0.000    -.1895411   -.0749718
-            male |   .0551121   .0186258     2.96   0.003     .0186063     .091618
-           white |   .1265607    .024247     5.22   0.000     .0790375    .1740839
-             age |   .0107205   .0006214    17.25   0.000     .0095025    .0119384
-           union |          0  (omitted)
-  private_sector |   .1486984   .0286473     5.19   0.000     .0925507    .2048461
-        fulltime |  -.3585126    .020254   -17.70   0.000    -.3982097   -.3188154
-supporting_child |   .0203414   .0202864     1.00   0.316    -.0194193    .0601021
-       immigrant |  -.1140888   .0302795    -3.77   0.000    -.1734355   -.0547421
-        tradable |  -.1053038   .0304561    -3.46   0.001    -.1649967   -.0456109
-  gvc_integrated |  -.0911559   .0807799    -1.13   0.259    -.2494817    .0671699
-                 |
-          stfips |
-             AK  |    .183617   .1058809     1.73   0.083    -.0239057    .3911398
-             AZ  |  -.1356613   .1007804    -1.35   0.178    -.3331873    .0618647
-             AR  |  -.0839701   .1105146    -0.76   0.447    -.3005747    .1326346
-             CA  |   -.138808   .0801636    -1.73   0.083    -.2959257    .0183098
-             CO  |  -.1350954   .1178622    -1.15   0.252    -.3661012    .0959103
-             CT  |   .1097107   .1113493     0.99   0.324      -.10853    .3279514
-             DE  |  -.0413776     .11217    -0.37   0.712    -.2612268    .1784717
-             DC  |   .2760289   .1349228     2.05   0.041     .0115851    .5404728
-             FL  |   .0005265   .0902836     0.01   0.995    -.1764261    .1774791
-             GA  |  -.0022706   .1024965    -0.02   0.982    -.2031599    .1986188
-             HI  |  -.0126463   .1104277    -0.11   0.909    -.2290806     .203788
-             ID  |  -.1223135   .0951374    -1.29   0.199    -.3087793    .0641523
-             IL  |   .0460095    .088858     0.52   0.605     -.128149    .2201681
-             IN  |  -.2537368   .1018716    -2.49   0.013    -.4534014   -.0540722
-             IA  |  -.1461555    .102833    -1.42   0.155    -.3477045    .0553935
-             KS  |  -.1025014   .1022416    -1.00   0.316    -.3028913    .0978885
-             KY  |   .1088248   .1047734     1.04   0.299    -.0965273    .3141768
-             LA  |   .1696153     .10072     1.68   0.092    -.0277924    .3670229
-             ME  |  -.3115626   .1140518    -2.73   0.006       -.5351   -.0880252
-             MD  |  -.1291306   .1164403    -1.11   0.267    -.3573494    .0990882
-             MA  |  -.1104556   .1011959    -1.09   0.275     -.308796    .0878848
-             MI  |  -.1017706   .0915681    -1.11   0.266    -.2812407    .0776995
-             MN  |  -.1886009   .0976346    -1.93   0.053    -.3799613    .0027594
-             MS  |  -.0417888   .1012294    -0.41   0.680    -.2401948    .1566171
-             MO  |  -.2212831   .1003814    -2.20   0.027    -.4180271   -.0245392
-             MT  |  -.1501122   .0925973    -1.62   0.105    -.3315995    .0313751
-             NE  |  -.0677867   .0972964    -0.70   0.486    -.2584842    .1229108
-             NV  |  -.0966307   .1041371    -0.93   0.353    -.3007356    .1074742
-             NH  |  -.0897617   .0972915    -0.92   0.356    -.2804496    .1009262
-             NJ  |   .0457422   .1059795     0.43   0.666    -.1619737    .2534582
-             NM  |   .0143732   .1024836     0.14   0.888     -.186491    .2152374
-             NY  |  -.1690018   .0921315    -1.83   0.067    -.3495763    .0115726
-             NC  |   .0849761   .0968412     0.88   0.380     -.104829    .2747813
-             ND  |  -.1625168   .0972578    -1.67   0.095    -.3531385     .028105
-             OH  |   -.012711   .0862035    -0.15   0.883    -.1816667    .1562447
-             OK  |   .2942886     .10352     2.84   0.004      .091393    .4971841
-             OR  |  -.1516117   .0982203    -1.54   0.123      -.34412    .0408967
-             PA  |  -.0450253   .0870643    -0.52   0.605    -.2156681    .1256176
-             RI  |    .077521   .1118151     0.69   0.488    -.1416326    .2966747
-             SC  |   .1096258   .1098254     1.00   0.318     -.105628    .3248795
-             SD  |   -.147704   .0995242    -1.48   0.138    -.3427679    .0473598
-             TN  |  -.0415567   .0986609    -0.42   0.674    -.2349284    .1518151
-             TX  |   .1321689   .0823519     1.60   0.109    -.0292379    .2935757
-             UT  |  -.0934068   .0969331    -0.96   0.335    -.2833922    .0965785
-             VT  |  -.0474498   .1047693    -0.45   0.651    -.2527939    .1578943
-             VA  |    .048987   .1032602     0.47   0.635    -.1533994    .2513733
-             WA  |  -.0292137   .0937017    -0.31   0.755    -.2128657    .1544383
-             WV  |  -.0899663    .098323    -0.92   0.360    -.2826758    .1027432
-             WI  |   .0071215   .0914121     0.08   0.938    -.1720429    .1862858
-             WY  |   .0094439   .0992059     0.10   0.924    -.1849961    .2038838
-                 |
-            year |
-           2018  |  -.1008454   .0327269    -3.08   0.002    -.1649889   -.0367019
-           2019  |  -.0917094   .0285679    -3.21   0.001    -.1477014   -.0357173
-           2020  |  -.2138078   .0422936    -5.06   0.000    -.2967018   -.1309138
-           2021  |   .8649651   .1176569     7.35   0.000     .6343619    1.095568
-           2022  |   .5764714   .1057175     5.45   0.000     .3692689    .7836739
-           2023  |          0  (omitted)
-                 |
-           _cons |  -1.136461   .1132602   -10.03   0.000    -1.358447   -.9144746
-----------------------------------------------------------------------------------
-
-. 
-end of do-file
-
+. log close
+      name:  <unnamed>
+       log:  /Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/analysis.log
+  log type:  text
+ closed on:  28 Nov 2024, 05:26:56
+-----------------------------------------------------------------------------------------------------------------------------
