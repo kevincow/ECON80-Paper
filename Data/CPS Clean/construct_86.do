@@ -5,12 +5,12 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg86.dta", clear
+use "../CPS Raw/morg86.dta", clear
 
 // Concatenate all years of data into one dataset
 foreach year in 87 88 89 {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta"
 	
 }
 

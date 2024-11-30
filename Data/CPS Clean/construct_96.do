@@ -5,13 +5,13 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg96.dta", clear
+use "../CPS Raw/morg96.dta", clear
 
 
 // Concatenate all years of data into one dataset
 foreach year in 97 98 99 00 01 /* 02 03 04 */ {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta"
 	
 }
 
@@ -142,13 +142,6 @@ keep if I25b == 0
 drop if earnhre == 9999
 drop if missing(earnhre)
 	
-
-// Merge industry variables (update these)
-/*
-gen ind = .
-replace ind = ind02 if !missing(ind02)
-replace ind = ind80 if missing(ind) & !missing(ind80)
-*/
 
 // Remove anyone without two observations
 egen id_count = count(id), by(id)

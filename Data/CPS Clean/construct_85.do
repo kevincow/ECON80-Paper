@@ -5,12 +5,12 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg85.dta", clear
+use "../CPS Raw/morg85.dta", clear
 
 // Concatenate all years of data into one dataset
 foreach year in 86 {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta"
 	
 }
 
@@ -110,8 +110,6 @@ drop delete_flag
 
 tsset id year
 
-// Drop anyone who isn't paid by the hour
-// drop if paidhre == 2 (YOUR MOST RECENT CHANGE)
 keep if I25b == 0
 
 // I think in general maybe impute earnhre from earnwke and uhourse if missing

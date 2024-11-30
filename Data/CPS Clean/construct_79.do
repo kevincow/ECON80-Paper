@@ -5,12 +5,12 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg79.dta", clear
+use "../CPS Raw/morg79.dta", clear
 
 // Concatenate all years of data into one dataset
 foreach year in 80 81 82 83 84 {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta"
 	
 }
 
@@ -200,12 +200,6 @@ drop if missing(earnhre)
 
 rename classer class94
 
-/*
-gen ind = ind70 if !missing(ind70)
-replace ind = ind80 if missing(ind) & !missing(ind80)
-drop if missing(ind)
-*/
-
 // Remove anyone without two observations
 egen id_count = count(id), by(id)
 keep if id_count == 2
@@ -228,7 +222,6 @@ replace id = id + "_E"
 
 save "cleaned_data_79to84.dta", replace
 
-// Probably dropped too many here...
 
 
 

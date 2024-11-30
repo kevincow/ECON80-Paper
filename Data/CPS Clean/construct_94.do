@@ -5,12 +5,12 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg94.dta", clear
+use "../CPS Raw/morg94.dta", clear
 
 // Concatenate all years of data into one dataset
 foreach year in 95 96 {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta"
 	
 }
 
@@ -76,18 +76,6 @@ keep if nobs == 2
 egen id = group(hhid lineno hrsample hurespli race sex grade92 famnum)
 
 
-/*
-sort id minsamp
-
-gen is_mis4 = (minsamp == 4)
-gen is_mis8 = (minsamp == 8)
-
-bysort id: egen mis4 = total(is_mis4)
-bysort id: egen mis8 = total(is_mis8)
-
-keep if (mis4 == 1 & mis8 == 1)
-*/ 
-
 gen delete_flag = 1
 foreach year in 1994 1995 {
 	
@@ -119,12 +107,6 @@ replace earnhre = earnwke / uhourse * 100 if missing(earnhre) & earnwke < 999
 drop if earnhre >= 9999
 drop if missing(earnhre)
 
-// Merge industry variables (update these)
-/*
-gen ind = .
-// replace ind = ind02 if !missing(ind02)
-replace ind = ind80 if missing(ind) & !missing(ind80)
-*/
 
 // Remove anyone without two observations
 egen id_count = count(id), by(id)

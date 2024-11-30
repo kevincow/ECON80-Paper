@@ -1,0 +1,23 @@
+Variable	Pre 2000	Post 2000
+rigid	.2104	.235
+	(.4076)	(.424)
+inflation	.0084	-.9234
+	(1.1071)	(1.4577)
+productivity_growth	1.9897	1.8807
+	(1.2946)	(1.4177)
+unemployment	6.0289	5.6522
+	(1.979)	(2.1586)
+educ	12.7081	13.6
+	(2.2507)	(2.2044)
+experience	22.2989	24.1117
+	(13.4122)	(13.9497)
+female	.5443	.5572
+	(.498)	(.4967)
+white	.8144	.7374
+	(.3888)	(.4401)
+married	.6182	.5584
+	(.4858)	(.4966)
+union	.2673	.171
+	(.4426)	(.3765)
+Observations	111187	163607
+Standard deviations in parentheses		

@@ -8,12 +8,12 @@ cd "`dir'"
 *************************** Compile the data **********************************
 
 
-use "morg04.dta", clear
+use "../CPS Raw/morg04.dta", clear
 
 // Concatenate all years of data into one dataset
 foreach year in 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 {
 	
-	append using morg`year' 
+	append using "../CPS Raw/morg`year'.dta" 
 	
 }
 
@@ -239,13 +239,6 @@ egen nobs = count(hhid), by(hhid hrhhid2 lineno ind occ)
 keep if nobs == 2
 drop nobs
 
-/*
-tab nobs minsamp if nobs == 2
-
-tab nobs minsamp
-
-tab year minsamp if nobs == 2
-*/
 
 // Create a unique identifier
 egen id = group(hhid hrhhid2 lineno)
@@ -262,13 +255,6 @@ keep if (mis4 == 1 & mis8 == 1)
 
 tsset id year
 
-// Drop anyone who may have changed jobs
-/*
-by id (year): gen job_change = (class94 != class94[_n-1]) | (ind02 != ind02[_n-1]) | (ind17 != ind17[_n-1]) | (dind02 != dind02[_n-1]) | (occ2012 != occ2012[_n-1]) | (occ18 != occ18[_n-1])
-
-drop if job_change == 1
-drop job_change
-*/
 
 // Drop anyone who isn't paid by the hour
 drop if paidhre == 2
@@ -296,20 +282,6 @@ gen log_wage_change = ln(earnhre) - ln(lag_earnhre)
 // For now... just drop anyone with a large change in wages
 drop if abs(log_wage_change) > 0.25
 
-// Merge industry variables
-/*
-gen ind = .
-replace ind = ind02 if !missing(ind02)
-replace ind = ind17 if missing(ind) & !missing(ind17)
-*/
-// be careful in case there is a reworking of how these things are coded
-
-// Merge occupation variables (need to merge the occs but they are coded differently)
-/*
-gen occ = .
-replace occ = occ002 if !missing(occ002)
-replace occ = occ18 if missing(occ) & !missing(occ18)
-*/
 
 // Make sure there are no overlapping IDs when we need to concatenate
 tostring id, replace

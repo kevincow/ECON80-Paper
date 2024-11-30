@@ -5,8 +5,8 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg93.dta", clear
-append using morg94
+use "../CPS Raw/morg93.dta", clear
+append using "../CPS Raw/morg94.dta"
 
 
 gen occ = .

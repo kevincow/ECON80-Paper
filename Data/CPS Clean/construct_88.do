@@ -5,8 +5,8 @@ set more off
 local dir "/Users/kevincao/Desktop/ECON80/ECON80-Paper/Data/CPS Clean/"
 cd "`dir'"
 
-use "morg88.dta", clear
-append using morg89
+use "../CPS Raw/morg88.dta", clear
+append using "../CPS Raw/morg89.dta"
 
 
 gen occ = .
@@ -133,7 +133,6 @@ replace id = id + "_G"
 
 save "cleaned_data_88to89.dta", replace
 
-// Probably dropped too many here....
 
 
 
