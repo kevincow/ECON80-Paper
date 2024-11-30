@@ -1,7 +1,6 @@
 # The Downward Nominal Wage Rigidity Gap for Lower-Income Workers
 
-## Kevin Cao
-## Dartmouth College, ECON80 24F
+## Kevin Cao, Dartmouth College, ECON80 24F
 ## Taught by Professor Douglas Staiger
 
 Welcome to my data and code repository for my ECON80 (Advanced Topics in Econometrics) term paper for the 24F term! 
